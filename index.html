@@ -130,6 +130,7 @@
   .ghost-btn { background: var(--card); color: var(--text); }
 
   .big-done { font-size: 5rem; margin: 6px; animation: float 3s ease-in-out infinite; }
+  .zzz { font-size: 2rem; letter-spacing:.15em; opacity:.6; margin:8px 0; animation: float 3.5s ease-in-out infinite; color: var(--star); }
   .score-line { font-size: 1.3rem; font-weight:700; margin: 6px 0; }
 
   /* ---- Grown-up dashboard ---- */
@@ -212,10 +213,11 @@ const DEFAULT_DATA = {
   lastPlayed: null,      // 'YYYY-MM-DD'
   dayStreak: 0,
   skills: {
-    words:   { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
-    math:    { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
-    pattern: { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
-    memory:  { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 }
+    words:      { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    math:       { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    pattern:    { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    memory:     { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    colorshape: { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 }
   }
 };
 let DATA = load();
@@ -314,24 +316,53 @@ const WORD_ITEMS = [
   {e:'🐝',w:'BEE'},{e:'🎈',w:'BALLOON'},{e:'🐸',w:'FROG'},{e:'🥚',w:'EGG'},{e:'🦆',w:'DUCK'},
   {e:'🍌',w:'BANANA'},{e:'🐮',w:'COW'},{e:'🌸',w:'FLOWER'},{e:'🦋',w:'BUTTERFLY'},{e:'🍦',w:'ICE CREAM'},
   {e:'🐧',w:'PENGUIN'},{e:'🌈',w:'RAINBOW'},{e:'🥕',w:'CARROT'},{e:'🦉',w:'OWL'},
-  {e:'🐘',w:'ELEPHANT'},{e:'🚀',w:'ROCKET'},{e:'🎂',w:'CAKE'},{e:'🐟',w:'FISH'},{e:'🦁',w:'LION'}
+  {e:'🐘',w:'ELEPHANT'},{e:'🚀',w:'ROCKET'},{e:'🎂',w:'CAKE'},{e:'🦁',w:'LION'},
+  {e:'🐵',w:'MONKEY'},{e:'🐰',w:'RABBIT'},{e:'🐴',w:'HORSE'},{e:'🐑',w:'SHEEP'},{e:'🐷',w:'PIG'},
+  {e:'🐢',w:'TURTLE'},{e:'🐳',w:'WHALE'},{e:'🦈',w:'SHARK'},{e:'🐍',w:'SNAKE'},{e:'🐭',w:'MOUSE'},
+  {e:'🍇',w:'GRAPES'},{e:'🍓',w:'STRAWBERRY'},{e:'🥛',w:'MILK'},{e:'🍞',w:'BREAD'},{e:'🧀',w:'CHEESE'},
+  {e:'⛄',w:'SNOWMAN'},{e:'🎁',w:'GIFT'},{e:'📚',w:'BOOK'},{e:'⚽',w:'BALL'},{e:'🧸',w:'TEDDY'},
+  {e:'🚂',w:'TRAIN'},{e:'✈️',w:'PLANE'},{e:'🚲',w:'BIKE'},{e:'👟',w:'SHOE'},{e:'🎩',w:'HAT'},
+  {e:'🌊',w:'WAVE'},{e:'🔥',w:'FIRE'},{e:'🎵',w:'MUSIC'},{e:'🦕',w:'DINOSAUR'},{e:'🐻',w:'BEAR'}
 ];
 const MEMORY_EMOJIS = ['🌙','⭐','🦉','🐻','🌸','🐢','🦋','🍄','🐳','🌵','🦊','🐨','🐙','🦕'];
 const PATTERN_PAIRS = ['🔴🔵','🟢🟡','⭐🌙','🍎🍌','🐶🐱','🔺🔷','❤️💙','🌸🍄'];
 const PATTERN_TRIPLES = ['🔴🔵🟡','⭐🌙☀️','🍎🍌🍇','🐶🐱🐭'];
 
+const COLORS = [
+  {name:'red',    circle:'🔴', square:'🟥', heart:'❤️', css:'#ff6b6b'},
+  {name:'blue',   circle:'🔵', square:'🟦', heart:'💙', css:'#6b9bff'},
+  {name:'green',  circle:'🟢', square:'🟩', heart:'💚', css:'#6bd08a'},
+  {name:'yellow', circle:'🟡', square:'🟨', heart:'💛', css:'#ffd75a'},
+  {name:'orange', circle:'🟠', square:'🟧', heart:'🧡', css:'#ffa85a'},
+  {name:'purple', circle:'🟣', square:'🟪', heart:'💜', css:'#c08aff'}
+];
+const SHAPES = [
+  {name:'circle',   colored:true},
+  {name:'square',   colored:true},
+  {name:'heart',    colored:true},
+  {name:'star',     glyph:'⭐'},
+  {name:'triangle', glyph:'🔺'}
+];
+function shapeGlyph(shape, colorName){
+  if(shape.glyph) return shape.glyph;
+  const c = COLORS.find(x=>x.name===colorName) || COLORS[0];
+  return c[shape.name];
+}
+
 const SKILL_INFO = {
-  words:   {name:'Words',    icon:'🔤'},
-  math:    {name:'Math',     icon:'🔢'},
-  memory:  {name:'Memory',   icon:'🧩'},
-  pattern: {name:'Patterns', icon:'🎨'}
+  words:      {name:'Words',    icon:'🔤'},
+  math:       {name:'Math',     icon:'🔢'},
+  memory:     {name:'Memory',   icon:'🧩'},
+  pattern:    {name:'Patterns', icon:'🎨'},
+  colorshape: {name:'Colors & Shapes', icon:'🌈'}
 };
 const LEVEL_NAMES = {1:'Easy', 2:'Medium', 3:'Hard'};
 const LEVEL_DESC = {
   words:  {1:'First letters', 2:'Match the word', 3:'Last letters'},
   math:   {1:'Count to 5', 2:'Count & add to 6', 3:'Add & take away'},
   memory: {1:'4 pairs', 2:'6 pairs', 3:'8 pairs'},
-  pattern:{1:'Simple ABAB', 2:'More colors', 3:'ABC patterns'}
+  pattern:{1:'Simple ABAB', 2:'More colors', 3:'ABC patterns'},
+  colorshape:{1:'Find the color', 2:'Find the shape', 3:'Color + shape'}
 };
 const GAME_LEN = 5; // questions per session (memory = rounds)
 
@@ -355,7 +386,9 @@ function goHome(){
           <span class="lbl">${SKILL_INFO[k].name}</span>
           <span class="lvl-badge">Level ${DATA.skills[k].level}</span>
         </button>`).join('')}
+      <button class="menu-card wide" data-g="colorshape"><span class="ic">🌈</span><span class="lbl">Colors &amp; Shapes</span><span class="lvl-badge">Level ${DATA.skills.colorshape.level}</span></button>
       <button class="menu-card wide" data-g="mixed"><span class="ic">🌟</span><span class="lbl">Surprise Me!</span></button>
+      <button class="menu-card wide" data-g="goodnight"><span class="ic">🌙</span><span class="lbl">Good night, ${CHILD_NAME}</span></button>
       <button class="menu-card wide grown" data-g="dash"><span class="ic">📊</span><span class="lbl">Grown-Ups: Progress</span></button>
     </div>`;
   app.appendChild(wrap);
@@ -364,6 +397,7 @@ function goHome(){
     const g=b.dataset.g;
     if(g==='mixed') startMixed();
     else if(g==='dash') showDashboard();
+    else if(g==='goodnight') goodNight();
     else showLevelSelect(g);
   }));
 }
@@ -423,6 +457,7 @@ function runRounds(kind, level){
     if(kind==='words')   buildWordRound(round, level, results, onResult);
     else if(kind==='math')    buildMathRound(round, level, results, onResult);
     else if(kind==='pattern') buildPatternRound(round, level, results, onResult);
+    else if(kind==='colorshape') buildColorShapeRound(round, level, results, onResult);
     else if(kind==='memory')  buildMemoryRound(round, level, results, onResult);
   }
 
@@ -597,6 +632,53 @@ function buildPatternRound(round, level, results, onResult){
   say('What comes next in the pattern?');
 }
 
+/* ---- COLORS & SHAPES ---- "Find the red one!" / "Find the star!" / "Find the blue heart!" ---- */
+function buildColorShapeRound(round, level, results, onResult){
+  clearMain();
+  let promptHTML, spoken, options;
+  if(level===1){
+    const cols = shuffle(COLORS).slice(0,3);
+    const target = rand(cols);
+    options = cols.map(c=>({glyph:c.circle, correct:c.name===target.name}));
+    promptHTML = `Find the <span style="color:${target.css}">${target.name}</span> one!`;
+    spoken = `Find the ${target.name} one!`;
+  } else if(level===2){
+    const shapes = shuffle(SHAPES).slice(0,3);
+    const target = rand(shapes);
+    options = shapes.map(s=>({glyph:shapeGlyph(s, s.colored?rand(COLORS).name:null), correct:s.name===target.name}));
+    promptHTML = `Find the ${target.name}!`;
+    spoken = `Find the ${target.name}!`;
+  } else {
+    const colored = SHAPES.filter(s=>s.colored);
+    const tShape = rand(colored), tColor = rand(COLORS);
+    const set = [{shape:tShape, color:tColor, correct:true}];
+    while(set.length<3){
+      const vary = Math.random()<0.5;
+      const s = vary ? rand(colored) : tShape;
+      const c = vary ? tColor : rand(COLORS);
+      if(!set.some(o=>o.shape.name===s.name && o.color.name===c.name)) set.push({shape:s, color:c, correct:false});
+    }
+    options = shuffle(set).map(o=>({glyph:shapeGlyph(o.shape, o.color.name), correct:o.correct}));
+    promptHTML = `Find the <span style="color:${tColor.css}">${tColor.name}</span> ${tShape.name}!`;
+    spoken = `Find the ${tColor.name} ${tShape.name}!`;
+  }
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`${progressBar(round,results)}
+    <div class="prompt" style="font-size:1.9rem">${promptHTML}</div>
+    <div class="hint">Tap the right one</div>
+    <div class="options cols3"></div>
+    <button class="speak-btn">🔊 Say it again</button>`;
+  app.appendChild(wrap);
+  const box=wrap.querySelector('.options');
+  options.forEach(o=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=o.glyph;
+    b.addEventListener('click',()=>handleChoice(b, o.correct, box, onResult, ()=>say('Try again! '+spoken)));
+    box.appendChild(b);
+  });
+  wrap.querySelector('.speak-btn').addEventListener('click',()=>say(spoken));
+  say(spoken);
+}
+
 /* shared single-answer handler */
 function handleChoice(btn, isCorrect, box, onResult, sayWrong){
   if(box.dataset.locked) return;
@@ -653,7 +735,7 @@ function buildMemoryRound(round, level, results, onResult){
    MIXED
    ============================================================ */
 function startMixed(){
-  const order=shuffle(['words','math','pattern','words','math']);
+  const order=shuffle(['words','math','pattern','colorshape','math']);
   let idx=0, correct=0, results=[];
   function next(){
     if(idx>=order.length){ finishGame('mixed', correct, order.length, results, false); return; }
@@ -662,9 +744,29 @@ function startMixed(){
     const cb=(ok)=>{ results.push(ok); if(ok){correct++; addStar(1);} setTimeout(()=> ok?showReward(rand(['Yay!','Great!','Wow!','Nice!']),next):next(), ok?650:300); };
     if(kind==='words') buildWordRound(idx, lv, results, cb);
     else if(kind==='math') buildMathRound(idx, lv, results, cb);
+    else if(kind==='colorshape') buildColorShapeRound(idx, lv, results, cb);
     else buildPatternRound(idx, lv, results, cb);
   }
   next();
+}
+
+/* ============================================================
+   GOOD NIGHT send-off
+   ============================================================ */
+function goodNight(){
+  clearMain(); screenTitle.textContent='';
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`
+    <div class="moon-big" style="font-size:5.5rem">🌙</div>
+    <div class="greeting">Good night, ${CHILD_NAME}</div>
+    <div class="subtitle">Sweet dreams 💤</div>
+    <div class="zzz">z &nbsp; z &nbsp; z</div>
+    <div class="subtitle" style="opacity:.7;margin-top:10px">⭐ You earned ${DATA.stars} stars${DATA.dayStreak>1?` · 🔥 ${DATA.dayStreak} nights in a row`:''}</div>
+    <button class="speak-btn" id="gnHome" style="margin-top:26px">🏠 Back</button>`;
+  app.appendChild(wrap);
+  winSound();
+  setTimeout(()=>say(`Good night ${CHILD_NAME}. Sweet dreams. See you tomorrow!`), 150);
+  wrap.querySelector('#gnHome').addEventListener('click',()=>{ tapSound(); goHome(); });
 }
 
 /* ============================================================
@@ -686,7 +788,8 @@ function finishGame(kind, correct, total, results, leveledUp){
     <button class="next-btn" id="again">Play again</button>
     <div style="height:12px"></div>
     <button class="speak-btn" id="home">🏠 Back home</button>
-    <div class="subtitle" style="margin-top:20px;opacity:.7;">Sweet dreams! 🌙</div>`;
+    &nbsp;
+    <button class="speak-btn" id="gn">🌙 Good night</button>`;
   app.appendChild(wrap);
   if(leveledUp){ levelUpSound(); setTimeout(()=>say('Level up! Great work '+CHILD_NAME+'!'),200); }
   else { winSound(); }
@@ -694,6 +797,7 @@ function finishGame(kind, correct, total, results, leveledUp){
   if(!leveledUp) say('All done '+CHILD_NAME+'! You got '+correct+' out of '+total+'. Sweet dreams!');
   wrap.querySelector('#again').addEventListener('click',()=>{ tapSound(); kind==='mixed'?startMixed():showLevelSelect(kind); });
   wrap.querySelector('#home').addEventListener('click',()=>{ tapSound(); goHome(); });
+  wrap.querySelector('#gn').addEventListener('click',()=>{ tapSound(); goodNight(); });
 }
 
 /* ============================================================
