@@ -217,7 +217,8 @@ const DEFAULT_DATA = {
     math:       { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
     pattern:    { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
     memory:     { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
-    colorshape: { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 }
+    colorshape: { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    phrases:    { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 }
   }
 };
 let DATA = load();
@@ -274,6 +275,13 @@ function say(text){
     const u = new SpeechSynthesisUtterance(text);
     u.rate=0.9; u.pitch=1.15; u.volume=1;
     speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sayMany(lines){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    lines.forEach(t=>{ const u=new SpeechSynthesisUtterance(t); u.rate=0.9; u.pitch=1.15; speechSynthesis.speak(u); });
   }catch(e){}
 }
 
@@ -349,12 +357,39 @@ function shapeGlyph(shape, colorName){
   return c[shape.name];
 }
 
+// Fun sayings (similes) to grow vocabulary — kid-friendly meanings.
+const PHRASES = [
+  {lead:'Cool as a',     key:'CUCUMBER',  emoji:'🥒', meaning:'very calm'},
+  {lead:'Busy as a',     key:'BEE',       emoji:'🐝', meaning:'working hard'},
+  {lead:'Quiet as a',    key:'MOUSE',     emoji:'🐭', meaning:'super quiet'},
+  {lead:'Snug as a',     key:'BUG',       emoji:'🐛', meaning:'cozy and comfy'},
+  {lead:'Fast as',       key:'LIGHTNING', emoji:'⚡', meaning:'super fast'},
+  {lead:'Strong as an',  key:'OX',        emoji:'🐂', meaning:'very strong'},
+  {lead:'Sweet as',      key:'SUGAR',     emoji:'🍬', meaning:'very kind'},
+  {lead:'Happy as a',    key:'CLAM',      emoji:'🐚', meaning:'really happy'},
+  {lead:'Slow as a',     key:'SNAIL',     emoji:'🐌', meaning:'very slow'},
+  {lead:'Brave as a',    key:'LION',      emoji:'🦁', meaning:'very brave'},
+  {lead:'Wise as an',    key:'OWL',       emoji:'🦉', meaning:'very smart'},
+  {lead:'Gentle as a',   key:'LAMB',      emoji:'🐑', meaning:'soft and kind'},
+  {lead:'Proud as a',    key:'PEACOCK',   emoji:'🦚', meaning:'very proud'},
+  {lead:'Free as a',     key:'BIRD',      emoji:'🐦', meaning:'free to play'},
+  {lead:'Light as a',    key:'FEATHER',   emoji:'🪶', meaning:'very light'},
+  {lead:'Good as',       key:'GOLD',      emoji:'🥇', meaning:'very well behaved'},
+  {lead:'Warm as',       key:'TOAST',     emoji:'🍞', meaning:'nice and warm'},
+  {lead:'Fresh as a',    key:'DAISY',     emoji:'🌼', meaning:'clean and lively'},
+  {lead:'Bright as the', key:'SUN',       emoji:'☀️', meaning:'happy and cheerful'},
+  {lead:'Playful as a',  key:'KITTEN',    emoji:'🐱', meaning:'loves to play'}
+];
+function cap(s){ return s.charAt(0) + s.slice(1).toLowerCase(); }   // CUCUMBER -> Cucumber
+function cap1(s){ return s.charAt(0).toUpperCase() + s.slice(1); }  // very calm -> Very calm
+
 const SKILL_INFO = {
   words:      {name:'Words',    icon:'🔤'},
   math:       {name:'Math',     icon:'🔢'},
   memory:     {name:'Memory',   icon:'🧩'},
   pattern:    {name:'Patterns', icon:'🎨'},
-  colorshape: {name:'Colors & Shapes', icon:'🌈'}
+  colorshape: {name:'Colors & Shapes', icon:'🌈'},
+  phrases:    {name:'Sayings', icon:'💬'}
 };
 const LEVEL_NAMES = {1:'Easy', 2:'Medium', 3:'Hard'};
 const LEVEL_DESC = {
@@ -362,7 +397,8 @@ const LEVEL_DESC = {
   math:   {1:'Count to 5', 2:'Count & add to 6', 3:'Add & take away'},
   memory: {1:'4 pairs', 2:'6 pairs', 3:'8 pairs'},
   pattern:{1:'Simple ABAB', 2:'More colors', 3:'ABC patterns'},
-  colorshape:{1:'Find the color', 2:'Find the shape', 3:'Color + shape'}
+  colorshape:{1:'Find the color', 2:'Find the shape', 3:'Color + shape'},
+  phrases:{1:'Finish the saying', 2:'What does it mean?', 3:'Sayings mix'}
 };
 const GAME_LEN = 5; // questions per session (memory = rounds)
 
@@ -387,6 +423,7 @@ function goHome(){
           <span class="lvl-badge">Level ${DATA.skills[k].level}</span>
         </button>`).join('')}
       <button class="menu-card wide" data-g="colorshape"><span class="ic">🌈</span><span class="lbl">Colors &amp; Shapes</span><span class="lvl-badge">Level ${DATA.skills.colorshape.level}</span></button>
+      <button class="menu-card wide" data-g="phrases"><span class="ic">💬</span><span class="lbl">Sayings</span><span class="lvl-badge">Level ${DATA.skills.phrases.level}</span></button>
       <button class="menu-card wide" data-g="mixed"><span class="ic">🌟</span><span class="lbl">Surprise Me!</span></button>
       <button class="menu-card wide" data-g="goodnight"><span class="ic">🌙</span><span class="lbl">Good night, ${CHILD_NAME}</span></button>
       <button class="menu-card wide grown" data-g="dash"><span class="ic">📊</span><span class="lbl">Grown-Ups: Progress</span></button>
@@ -458,6 +495,7 @@ function runRounds(kind, level){
     else if(kind==='math')    buildMathRound(round, level, results, onResult);
     else if(kind==='pattern') buildPatternRound(round, level, results, onResult);
     else if(kind==='colorshape') buildColorShapeRound(round, level, results, onResult);
+    else if(kind==='phrases') buildPhraseRound(round, level, results, onResult);
     else if(kind==='memory')  buildMemoryRound(round, level, results, onResult);
   }
 
@@ -679,6 +717,56 @@ function buildColorShapeRound(round, level, results, onResult){
   say(spoken);
 }
 
+/* ---- SAYINGS ---- learn fun phrases like "cool as a cucumber" ---- */
+function buildPhraseRound(round, level, results, onResult){
+  clearMain();
+  const mode = level===1 ? 'complete' : level===2 ? 'meaning' : (Math.random()<0.5?'complete':'meaning');
+  const target = rand(PHRASES);
+  const full = `${target.lead} ${cap(target.key)}`;
+  // when correct, teach the phrase + meaning out loud
+  const teachThenNext = (ok)=>{ if(ok) say(`Yes! ${full} means ${target.meaning}.`); onResult(ok); };
+
+  const wrap=document.createElement('div');
+  if(mode==='complete'){
+    const others = shuffle(PHRASES.filter(p=>p.key!==target.key)).slice(0,2);
+    const opts = shuffle([target, ...others]);
+    wrap.innerHTML=`${progressBar(round,results)}
+      <div class="prompt" style="font-size:1.7rem">${target.lead} <span style="color:var(--star)">___</span></div>
+      <div class="hint">Finish the saying!</div>
+      <div class="options cols3"></div>
+      <button class="speak-btn">🔊 Say it again</button>`;
+    app.appendChild(wrap);
+    const box=wrap.querySelector('.options');
+    opts.forEach(p=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML=`<div style="font-size:2.3rem">${p.emoji}</div><div style="font-size:.9rem;margin-top:4px">${cap(p.key)}</div>`;
+      b.addEventListener('click',()=>handleChoice(b, p.key===target.key, box, teachThenNext, ()=>say(target.lead+'... what?')));
+      box.appendChild(b);
+    });
+    wrap.querySelector('.speak-btn').addEventListener('click',()=>say(`${target.lead} ... what?`));
+    say(`${target.lead} ... what?`);
+  } else {
+    const others = shuffle(PHRASES.filter(p=>p.meaning!==target.meaning)).slice(0,2);
+    const opts = shuffle([target, ...others]);
+    wrap.innerHTML=`${progressBar(round,results)}
+      <div class="prompt-emoji" style="font-size:3.6rem">${target.emoji}</div>
+      <div class="prompt" style="font-size:1.5rem">${full}</div>
+      <div class="hint">What does it mean?</div>
+      <div class="options"></div>
+      <button class="speak-btn">🔊 Hear again</button>`;
+    app.appendChild(wrap);
+    const box=wrap.querySelector('.options');
+    opts.forEach(p=>{
+      const b=document.createElement('button'); b.className='opt word-opt'; b.textContent=cap1(p.meaning);
+      b.addEventListener('click',()=>handleChoice(b, p.meaning===target.meaning, box, teachThenNext, ()=>say(full+' means '+target.meaning)));
+      box.appendChild(b);
+    });
+    const readAll=()=>sayMany([full+'.', 'What does it mean?', ...opts.map((p,i)=>`${i+1}. ${p.meaning}`)]);
+    wrap.querySelector('.speak-btn').addEventListener('click',readAll);
+    readAll();
+  }
+}
+
 /* shared single-answer handler */
 function handleChoice(btn, isCorrect, box, onResult, sayWrong){
   if(box.dataset.locked) return;
@@ -735,7 +823,7 @@ function buildMemoryRound(round, level, results, onResult){
    MIXED
    ============================================================ */
 function startMixed(){
-  const order=shuffle(['words','math','pattern','colorshape','math']);
+  const order=shuffle(['words','math','pattern','colorshape','phrases']);
   let idx=0, correct=0, results=[];
   function next(){
     if(idx>=order.length){ finishGame('mixed', correct, order.length, results, false); return; }
@@ -745,6 +833,7 @@ function startMixed(){
     if(kind==='words') buildWordRound(idx, lv, results, cb);
     else if(kind==='math') buildMathRound(idx, lv, results, cb);
     else if(kind==='colorshape') buildColorShapeRound(idx, lv, results, cb);
+    else if(kind==='phrases') buildPhraseRound(idx, lv, results, cb);
     else buildPatternRound(idx, lv, results, cb);
   }
   next();
@@ -835,7 +924,7 @@ function showDashboard(){
   app.appendChild(wrap);
 
   const skillsBox = wrap.querySelector('#skills');
-  ['words','math','pattern','memory'].forEach(k=>{
+  ['words','math','phrases','colorshape','pattern','memory'].forEach(k=>{
     const s=DATA.skills[k];
     const acc = s.total? Math.round(s.correct/s.total*100):0;
     const mastery = s.total===0 ? 0 : Math.min(100, Math.round(((s.level-1)/2)*60 + (acc/100)*40));
@@ -915,7 +1004,9 @@ function weakTip(k){
     words:  'Away from the app, point out first letters on signs and books ("B is for bed!").',
     math:   'Count real things together — stairs, toys, spoons — to build number sense.',
     pattern:'Make patterns with toys or blocks (red, blue, red, blue…) and ask what comes next.',
-    memory: 'Play with fewer cards first; naming each picture out loud helps him remember.'
+    memory: 'Play with fewer cards first; naming each picture out loud helps him remember.',
+    colorshape:'Point out colors and shapes around the house — "that plate is a red circle!"',
+    phrases:'Use the sayings in real life — "you were quiet as a mouse!" — so they stick.'
   })[k] || '';
 }
 
