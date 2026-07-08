@@ -342,11 +342,11 @@ function clearMain(){ app.innerHTML=''; try{speechSynthesis.cancel();}catch(e){}
 
 function goHome(){
   clearMain(); screenTitle.textContent='';
-  const streakTxt = DATA.dayStreak>1 ? `🔥 ${DATA.dayStreak}-night streak!` : 'Pick a game, superstar ✨';
+  const streakTxt = DATA.dayStreak>1 ? `🔥 ${DATA.dayStreak}-night streak!` : `Pick a game, ${CHILD_NAME} ✨`;
   const wrap=document.createElement('div');
   wrap.innerHTML = `
     <div class="moon-big">🌙</div>
-    <div class="greeting">Bedtime Learning</div>
+    <div class="greeting">Hi ${CHILD_NAME}!</div>
     <div class="subtitle">${streakTxt}</div>
     <div class="menu">
       ${['words','math','memory','pattern'].map(k=>`
@@ -679,7 +679,7 @@ function finishGame(kind, correct, total, results, leveledUp){
     ? `<div class="score-line" style="color:var(--star)">🎉 Level Up! Now Level ${DATA.skills[kind].level} 🎉</div>` : '';
   wrap.innerHTML=`
     <div class="big-done">${medal}</div>
-    <div class="greeting">All done!</div>
+    <div class="greeting">All done, ${CHILD_NAME}!</div>
     <div class="score-line">You got ${correct} out of ${total}</div>
     ${levelMsg}
     <div class="subtitle">⭐ ${DATA.stars} stars total</div>
@@ -688,10 +688,10 @@ function finishGame(kind, correct, total, results, leveledUp){
     <button class="speak-btn" id="home">🏠 Back home</button>
     <div class="subtitle" style="margin-top:20px;opacity:.7;">Sweet dreams! 🌙</div>`;
   app.appendChild(wrap);
-  if(leveledUp){ levelUpSound(); setTimeout(()=>say('Level up! Great work!'),200); }
+  if(leveledUp){ levelUpSound(); setTimeout(()=>say('Level up! Great work '+CHILD_NAME+'!'),200); }
   else { winSound(); }
   launchConfetti();
-  if(!leveledUp) say('All done! You got '+correct+' out of '+total+'. Sweet dreams!');
+  if(!leveledUp) say('All done '+CHILD_NAME+'! You got '+correct+' out of '+total+'. Sweet dreams!');
   wrap.querySelector('#again').addEventListener('click',()=>{ tapSound(); kind==='mixed'?startMixed():showLevelSelect(kind); });
   wrap.querySelector('#home').addEventListener('click',()=>{ tapSound(); goHome(); });
 }
@@ -755,7 +755,8 @@ function showDashboard(){
   });
 }
 
-function childName(){ return 'Your child'; }
+const CHILD_NAME = 'Rutledge';
+function childName(){ return CHILD_NAME; }
 
 /* Recommendation engine — turns the stats into plain-language parent tips */
 function buildRecommendations(){
