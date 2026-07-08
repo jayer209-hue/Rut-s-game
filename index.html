@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a3e">
+<title>Bedtime Learning ⭐</title>
+<style>
+  :root {
+    --night1: #1a1a3e;
+    --night2: #2d2b55;
+    --star: #ffe27a;
+    --moon: #fdf6d8;
+    --pink: #ff8fb1;
+    --blue: #7ec4ff;
+    --green: #8ce0b0;
+    --purple: #c8a2ff;
+    --orange: #ffb877;
+    --card: rgba(255,255,255,0.10);
+    --card-strong: rgba(255,255,255,0.18);
+    --text: #fdf6ff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Baloo 2', 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+    color: var(--text);
+    background: linear-gradient(160deg, var(--night1) 0%, var(--night2) 55%, #3a2a52 100%);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  #sky { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+  .twinkle { position: absolute; border-radius: 50%; background: var(--moon); animation: tw 3s infinite ease-in-out; }
+  @keyframes tw { 0%,100% { opacity: .2; transform: scale(.8);} 50% { opacity: 1; transform: scale(1.3);} }
+
+  #app { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; gap: 10px; }
+  .home-btn { background: var(--card); border: none; color: var(--text); font-size: 1.6rem; width: 54px; height: 54px;
+    border-radius: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .1s; }
+  .home-btn:active { transform: scale(.9); }
+  .stars-count { background: var(--card); border-radius: 18px; padding: 10px 18px; font-size: 1.5rem; font-weight: 700;
+    display: flex; align-items: center; gap: 6px; color: var(--star); }
+  .screen-title { font-size: 1.3rem; font-weight: 700; opacity: .9; }
+
+  .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 20px 30px; text-align: center; overflow-y: auto; }
+
+  .greeting { font-size: 2.1rem; font-weight: 800; margin-bottom: 4px; }
+  .moon-big { font-size: 4rem; animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .subtitle { font-size: 1.1rem; opacity: .8; margin-bottom: 22px; }
+
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 460px; }
+  .menu-card { background: var(--card-strong); border: none; border-radius: 26px; padding: 22px 12px; cursor: pointer;
+    color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 6px; transition: transform .12s;
+    font-family: inherit; position: relative; }
+  .menu-card:active { transform: scale(.94); }
+  .menu-card .ic { font-size: 3rem; }
+  .menu-card .lbl { font-size: 1.2rem; font-weight: 700; }
+  .menu-card .lvl-badge { font-size: .8rem; background: var(--star); color:#3a2a10; font-weight:800;
+    padding: 2px 10px; border-radius: 12px; }
+  .menu-card.wide { grid-column: 1 / -1; padding: 18px; flex-direction: row; justify-content: center; gap: 12px; }
+  .menu-card.wide .ic { font-size: 2rem; }
+  .menu-card.grown { background: rgba(255,255,255,0.06); }
+
+  .prompt { font-size: 2.2rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center;
+    justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .prompt-emoji { font-size: 5rem; line-height: 1; margin: 8px 0 16px; }
+  .hint { font-size: 1.1rem; opacity: .78; margin-bottom: 18px; }
+  .options { display: grid; gap: 14px; width: 100%; max-width: 460px; }
+  .options.cols2 { grid-template-columns: 1fr 1fr; }
+  .options.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+  .opt { background: var(--card-strong); border: 3px solid transparent; border-radius: 22px; padding: 20px 10px;
+    font-size: 2.3rem; font-weight: 800; cursor: pointer; color: var(--text);
+    transition: transform .1s, background .2s, border-color .2s; font-family: inherit; min-height: 84px; }
+  .opt.word-opt { font-size: 1.5rem; }
+  .opt:active { transform: scale(.93); }
+  .opt.correct { background: var(--green); color: #14402b; border-color: #fff; animation: pop .4s; }
+  .opt.wrong { background: var(--pink); color: #5a1730; animation: shake .4s; }
+  .opt.dim { opacity: .35; }
+  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+  .speak-btn { margin-top: 16px; background: var(--card); border: none; color: var(--text); font-size: 1.05rem;
+    padding: 12px 22px; border-radius: 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit; font-weight: 700; }
+  .speak-btn:active { transform: scale(.94); }
+
+  .memory-grid { display: grid; gap: 10px; width: 100%; max-width: 420px; margin: 0 auto; }
+  .mcard { aspect-ratio: 1; background: var(--card-strong); border-radius: 18px; display: flex; align-items: center;
+    justify-content: center; font-size: 2.4rem; cursor: pointer; border: none; color: var(--text); transition: transform .2s; }
+  .mcard:active { transform: scale(.95); }
+  .mcard.flipped { background: var(--purple); }
+  .mcard.matched { background: var(--green); animation: pop .4s; cursor: default; }
+  .mcard .face { visibility: hidden; }
+  .mcard.flipped .face, .mcard.matched .face { visibility: visible; }
+
+  .pattern-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 3rem;
+    flex-wrap: wrap; margin-bottom: 20px; }
+  .pattern-q { width: 68px; height: 68px; border-radius: 18px; border: 3px dashed var(--star);
+    display: inline-flex; align-items: center; justify-content: center; }
+
+  .count-area { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 420px;
+    margin: 8px auto 22px; font-size: 2.8rem; }
+  .count-obj { animation: pop .3s; }
+
+  #reward { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center;
+    flex-direction: column; background: rgba(10,10,30,.55); backdrop-filter: blur(4px); text-align:center; padding:20px; }
+  #reward.show { display: flex; }
+  .reward-star { font-size: 6rem; animation: bigpop .6s; }
+  @keyframes bigpop { 0%{transform:scale(0) rotate(-40deg)} 70%{transform:scale(1.3) rotate(10deg)} 100%{transform:scale(1) rotate(0)} }
+  .reward-txt { font-size: 2rem; font-weight: 800; margin-top: 10px; }
+  .reward-sub { font-size: 1.05rem; opacity: .8; margin-top: 6px; }
+
+  .confetti { position: fixed; width: 12px; height: 12px; z-index: 6; pointer-events: none; }
+
+  .progress { display: flex; gap: 8px; margin-bottom: 16px; align-items:center; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--card); }
+  .dot.done { background: var(--star); }
+  .dot.miss { background: var(--pink); }
+  .lvl-pill { font-size:.85rem; font-weight:800; background:var(--card); padding:4px 12px; border-radius:14px; margin-left:6px; }
+
+  .next-btn { margin-top: 22px; background: var(--star); color: #3a2a10; border: none; font-size: 1.25rem; font-weight: 800;
+    padding: 15px 34px; border-radius: 24px; cursor: pointer; font-family: inherit; animation: pop .4s; }
+  .next-btn:active { transform: scale(.94); }
+  .ghost-btn { background: var(--card); color: var(--text); }
+
+  .big-done { font-size: 5rem; margin: 6px; animation: float 3s ease-in-out infinite; }
+  .score-line { font-size: 1.3rem; font-weight:700; margin: 6px 0; }
+
+  /* ---- Grown-up dashboard ---- */
+  .dash { width: 100%; max-width: 520px; text-align: left; }
+  .dash h2 { text-align:center; font-size:1.6rem; margin: 4px 0 2px; }
+  .dash .sub { text-align:center; opacity:.75; margin-bottom: 18px; font-size:.95rem; }
+  .stat-row { display:flex; gap:12px; margin-bottom: 16px; }
+  .stat-box { flex:1; background: var(--card-strong); border-radius: 18px; padding: 14px; text-align:center; }
+  .stat-box .num { font-size: 1.9rem; font-weight: 800; color: var(--star); }
+  .stat-box .cap { font-size: .8rem; opacity:.8; margin-top:2px; }
+  .skill-card { background: var(--card-strong); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
+  .skill-top { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+  .skill-name { font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:8px; }
+  .skill-lvl { font-size:.8rem; background:var(--purple); color:#2a1650; font-weight:800; padding:3px 10px; border-radius:12px; }
+  .bar { height: 12px; background: rgba(0,0,0,.25); border-radius: 8px; overflow:hidden; }
+  .bar > span { display:block; height:100%; border-radius:8px; background: linear-gradient(90deg,var(--green),var(--blue)); transition:width .6s; }
+  .skill-meta { font-size:.82rem; opacity:.8; margin-top:6px; }
+  .recs { background: rgba(255,226,122,.12); border:1px solid rgba(255,226,122,.35); border-radius:18px;
+    padding: 14px 16px; margin-top: 6px; }
+  .recs h3 { margin:0 0 8px; font-size:1.05rem; color:var(--star); }
+  .recs li { margin-bottom: 6px; font-size:.92rem; line-height:1.35; }
+  .recs ul { margin:0; padding-left: 20px; }
+  .reset-btn { display:block; margin: 18px auto 0; background:transparent; border:1px solid rgba(255,255,255,.25);
+    color:var(--text); opacity:.6; font-size:.85rem; padding:8px 16px; border-radius:14px; cursor:pointer; font-family:inherit; }
+
+  /* level select */
+  .level-select { display:grid; gap:14px; width:100%; max-width:420px; }
+  .lvl-opt { background:var(--card-strong); border:none; border-radius:22px; padding:18px; cursor:pointer; color:var(--text);
+    font-family:inherit; display:flex; align-items:center; gap:14px; text-align:left; transition:transform .1s; }
+  .lvl-opt:active { transform:scale(.96); }
+  .lvl-opt .lnum { font-size:2rem; }
+  .lvl-opt .ltxt { font-weight:800; font-size:1.15rem; }
+  .lvl-opt .ldesc { font-size:.85rem; opacity:.75; font-weight:400; }
+  .lvl-opt.locked { opacity:.45; }
+  .lvl-opt .star-earned { margin-left:auto; color:var(--star); font-size:1.1rem; }
+
+  @media (max-height: 640px) {
+    .moon-big { font-size: 3rem; }
+    .greeting { font-size: 1.6rem; }
+    .menu-card { padding: 16px 10px; }
+    .prompt-emoji { font-size: 3.6rem; margin: 6px 0 10px; }
+  }
+</style>
+</head>
+<body>
+<div id="sky"></div>
+<div id="app">
+  <div class="topbar">
+    <button class="home-btn" id="homeBtn" title="Home">🏠</button>
+    <div class="screen-title" id="screenTitle"></div>
+    <div class="stars-count">⭐ <span id="starCount">0</span></div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+<div id="reward">
+  <div class="reward-star">⭐</div>
+  <div class="reward-txt" id="rewardTxt">Great job!</div>
+  <div class="reward-sub">Tap to keep going</div>
+</div>
+
+<script>
+/* ============================================================
+   Bedtime Learning — learn-before-bed game for a 5-year-old
+   Words • Math • Memory • Patterns
+   + Levels, progress/score tracking, and grown-up recommendations
+   Single file, works offline, reads aloud for pre-readers.
+   ============================================================ */
+
+const app = document.getElementById('main');
+const screenTitle = document.getElementById('screenTitle');
+const starCountEl = document.getElementById('starCount');
+const rewardEl = document.getElementById('reward');
+const rewardTxt = document.getElementById('rewardTxt');
+
+/* ============================================================
+   PERSISTENT PROGRESS
+   ============================================================ */
+const DEFAULT_DATA = {
+  stars: 0,
+  lastPlayed: null,      // 'YYYY-MM-DD'
+  dayStreak: 0,
+  skills: {
+    words:   { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    math:    { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    pattern: { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 },
+    memory:  { level:1, played:0, correct:0, total:0, bestStreak:0, unlocked:1 }
+  }
+};
+let DATA = load();
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem('bl_data'));
+    if(!raw) return structuredClone(DEFAULT_DATA);
+    // merge to be safe against older saves
+    const d = structuredClone(DEFAULT_DATA);
+    d.stars = raw.stars||0; d.lastPlayed = raw.lastPlayed||null; d.dayStreak = raw.dayStreak||0;
+    for(const k in d.skills){ if(raw.skills && raw.skills[k]) Object.assign(d.skills[k], raw.skills[k]); }
+    return d;
+  }catch(e){ return structuredClone(DEFAULT_DATA); }
+}
+function save(){ localStorage.setItem('bl_data', JSON.stringify(DATA)); }
+function refreshStars(){ starCountEl.textContent = DATA.stars; }
+function addStar(n=1){ DATA.stars += n; refreshStars(); save(); }
+refreshStars();
+
+// daily streak bookkeeping
+(function trackDay(){
+  const today = todayStr();
+  if(DATA.lastPlayed !== today){
+    const y = yesterdayStr();
+    DATA.dayStreak = (DATA.lastPlayed === y) ? (DATA.dayStreak+1) : 1;
+    DATA.lastPlayed = today;
+    save();
+  }
+})();
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+
+/* ============================================================
+   SOUND + SPEECH
+   ============================================================ */
+let actx;
+function beep(freq, dur=0.15, type='sine', vol=0.15){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=vol; o.connect(g); g.connect(actx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+dur); o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+function goodSound(){ beep(660,0.12,'sine'); setTimeout(()=>beep(880,0.18,'sine'),110); }
+function winSound(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.18,'triangle'),i*120)); }
+function levelUpSound(){ [523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>beep(f,0.2,'triangle'),i*100)); }
+function tapSound(){ beep(440,0.06,'sine',0.08); }
+function nudgeSound(){ beep(300,0.12,'sine',0.08); }
+function say(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate=0.9; u.pitch=1.15; u.volume=1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+const rand = arr => arr[Math.floor(Math.random()*arr.length)];
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function launchConfetti(){
+  const colors=['#ffe27a','#ff8fb1','#7ec4ff','#8ce0b0','#c8a2ff','#ffb877'];
+  for(let i=0;i<28;i++){
+    const c=document.createElement('div'); c.className='confetti'; c.style.background=rand(colors);
+    c.style.left=(50+(Math.random()*60-30))+'vw'; c.style.top='40vh';
+    c.style.borderRadius=Math.random()>.5?'50%':'3px'; document.body.appendChild(c);
+    const dx=(Math.random()*2-1)*260, dy=-(150+Math.random()*250), rot=Math.random()*720;
+    c.animate([{transform:'translate(0,0) rotate(0)',opacity:1},
+      {transform:`translate(${dx}px,${dy}px) rotate(${rot}deg)`,opacity:1,offset:.6},
+      {transform:`translate(${dx*1.4}px,${dy+400}px) rotate(${rot}deg)`,opacity:0}],
+      {duration:1400+Math.random()*600,easing:'cubic-bezier(.2,.6,.4,1)'});
+    setTimeout(()=>c.remove(),2100);
+  }
+}
+function showReward(msg, cb, emoji='⭐'){
+  rewardEl.querySelector('.reward-star').textContent = emoji;
+  rewardTxt.textContent = msg; rewardEl.classList.add('show'); winSound(); launchConfetti();
+  const h=()=>{ rewardEl.classList.remove('show'); rewardEl.removeEventListener('click',h); cb&&cb(); };
+  rewardEl.addEventListener('click',h);
+}
+
+/* twinkly sky */
+(function(){ const sky=document.getElementById('sky');
+  for(let i=0;i<50;i++){ const s=document.createElement('div'); s.className='twinkle';
+    const sz=1+Math.random()*3; s.style.width=s.style.height=sz+'px'; s.style.left=Math.random()*100+'vw';
+    s.style.top=Math.random()*100+'vh'; s.style.animationDelay=Math.random()*3+'s'; sky.appendChild(s);} })();
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
+const WORD_ITEMS = [
+  {e:'🐶',w:'DOG'},{e:'🐱',w:'CAT'},{e:'🌙',w:'MOON'},{e:'⭐',w:'STAR'},{e:'☀️',w:'SUN'},
+  {e:'🍎',w:'APPLE'},{e:'🐟',w:'FISH'},{e:'🌳',w:'TREE'},{e:'🏠',w:'HOME'},{e:'🚗',w:'CAR'},
+  {e:'🐝',w:'BEE'},{e:'🎈',w:'BALLOON'},{e:'🐸',w:'FROG'},{e:'🥚',w:'EGG'},{e:'🦆',w:'DUCK'},
+  {e:'🍌',w:'BANANA'},{e:'🐮',w:'COW'},{e:'🌸',w:'FLOWER'},{e:'🦋',w:'BUTTERFLY'},{e:'🍦',w:'ICE CREAM'},
+  {e:'🐧',w:'PENGUIN'},{e:'🌈',w:'RAINBOW'},{e:'🥕',w:'CARROT'},{e:'🦉',w:'OWL'},
+  {e:'🐘',w:'ELEPHANT'},{e:'🚀',w:'ROCKET'},{e:'🎂',w:'CAKE'},{e:'🐟',w:'FISH'},{e:'🦁',w:'LION'}
+];
+const MEMORY_EMOJIS = ['🌙','⭐','🦉','🐻','🌸','🐢','🦋','🍄','🐳','🌵','🦊','🐨','🐙','🦕'];
+const PATTERN_PAIRS = ['🔴🔵','🟢🟡','⭐🌙','🍎🍌','🐶🐱','🔺🔷','❤️💙','🌸🍄'];
+const PATTERN_TRIPLES = ['🔴🔵🟡','⭐🌙☀️','🍎🍌🍇','🐶🐱🐭'];
+
+const SKILL_INFO = {
+  words:   {name:'Words',    icon:'🔤'},
+  math:    {name:'Math',     icon:'🔢'},
+  memory:  {name:'Memory',   icon:'🧩'},
+  pattern: {name:'Patterns', icon:'🎨'}
+};
+const LEVEL_NAMES = {1:'Easy', 2:'Medium', 3:'Hard'};
+const LEVEL_DESC = {
+  words:  {1:'First letters', 2:'Match the word', 3:'Last letters'},
+  math:   {1:'Count to 5', 2:'Count & add to 6', 3:'Add & take away'},
+  memory: {1:'4 pairs', 2:'6 pairs', 3:'8 pairs'},
+  pattern:{1:'Simple ABAB', 2:'More colors', 3:'ABC patterns'}
+};
+const GAME_LEN = 5; // questions per session (memory = rounds)
+
+/* ============================================================
+   ROUTING / HOME
+   ============================================================ */
+function clearMain(){ app.innerHTML=''; try{speechSynthesis.cancel();}catch(e){} }
+
+function goHome(){
+  clearMain(); screenTitle.textContent='';
+  const streakTxt = DATA.dayStreak>1 ? `🔥 ${DATA.dayStreak}-night streak!` : 'Pick a game, superstar ✨';
+  const wrap=document.createElement('div');
+  wrap.innerHTML = `
+    <div class="moon-big">🌙</div>
+    <div class="greeting">Bedtime Learning</div>
+    <div class="subtitle">${streakTxt}</div>
+    <div class="menu">
+      ${['words','math','memory','pattern'].map(k=>`
+        <button class="menu-card" data-g="${k}">
+          <span class="ic">${SKILL_INFO[k].icon}</span>
+          <span class="lbl">${SKILL_INFO[k].name}</span>
+          <span class="lvl-badge">Level ${DATA.skills[k].level}</span>
+        </button>`).join('')}
+      <button class="menu-card wide" data-g="mixed"><span class="ic">🌟</span><span class="lbl">Surprise Me!</span></button>
+      <button class="menu-card wide grown" data-g="dash"><span class="ic">📊</span><span class="lbl">Grown-Ups: Progress</span></button>
+    </div>`;
+  app.appendChild(wrap);
+  wrap.querySelectorAll('.menu-card').forEach(b=>b.addEventListener('click',()=>{
+    tapSound();
+    const g=b.dataset.g;
+    if(g==='mixed') startMixed();
+    else if(g==='dash') showDashboard();
+    else showLevelSelect(g);
+  }));
+}
+document.getElementById('homeBtn').addEventListener('click',()=>{ tapSound(); goHome(); });
+
+/* ============================================================
+   LEVEL SELECT
+   ============================================================ */
+function showLevelSelect(kind){
+  clearMain();
+  const s = DATA.skills[kind];
+  screenTitle.textContent = SKILL_INFO[kind].name+' '+SKILL_INFO[kind].icon;
+  const wrap=document.createElement('div');
+  wrap.innerHTML = `
+    <div class="prompt" style="font-size:1.6rem;margin-bottom:2px;">${SKILL_INFO[kind].icon} ${SKILL_INFO[kind].name}</div>
+    <div class="hint">Choose a level</div>
+    <div class="level-select"></div>`;
+  app.appendChild(wrap);
+  const box = wrap.querySelector('.level-select');
+  [1,2,3].forEach(lv=>{
+    const unlocked = lv <= s.unlocked;
+    const btn=document.createElement('button');
+    btn.className='lvl-opt'+(unlocked?'':' locked');
+    btn.innerHTML = `<span class="lnum">${unlocked?['','🌱','🌿','🌳'][lv]:'🔒'}</span>
+      <span><span class="ltxt">Level ${lv} · ${LEVEL_NAMES[lv]}</span><br>
+      <span class="ldesc">${LEVEL_DESC[kind][lv]}</span></span>
+      ${s.level>lv?'<span class="star-earned">✓</span>':''}`;
+    btn.addEventListener('click',()=>{
+      tapSound();
+      if(!unlocked){ say('Play the level before to unlock this one!'); nudgeSound(); return; }
+      runRounds(kind, lv);
+    });
+    box.appendChild(btn);
+  });
+}
+
+/* ============================================================
+   ROUND RUNNER (words / math / pattern / memory)
+   ============================================================ */
+function runRounds(kind, level){
+  let round=0, correctCount=0, streak=0, results=[];
+
+  function next(){
+    round++;
+    if(round > GAME_LEN){ endSession(); return; }
+    screenTitle.textContent = SKILL_INFO[kind].name+' · Lvl '+level;
+    const onResult = (ok)=>{
+      results.push(ok);
+      if(ok){ correctCount++; streak++; addStar(1); }
+      else { streak=0; }
+      if(streak > DATA.skills[kind].bestStreak){ DATA.skills[kind].bestStreak = streak; save(); }
+      setTimeout(()=> {
+        if(ok) showReward(rand(['Great job!','You did it!','Amazing!','Well done!','Super!','Brilliant!','Yay!']), next);
+        else next();
+      }, ok?650:300);
+    };
+    if(kind==='words')   buildWordRound(round, level, results, onResult);
+    else if(kind==='math')    buildMathRound(round, level, results, onResult);
+    else if(kind==='pattern') buildPatternRound(round, level, results, onResult);
+    else if(kind==='memory')  buildMemoryRound(round, level, results, onResult);
+  }
+
+  function endSession(){
+    // record stats
+    const s = DATA.skills[kind];
+    s.played += 1;
+    s.total  += GAME_LEN;
+    s.correct += correctCount;
+    // level up: 4/5 or better and not yet past this level
+    let leveledUp=false;
+    const acc = correctCount / GAME_LEN;
+    if(acc >= 0.8 && s.level === level && level < 3){ s.level = level+1; s.unlocked=Math.max(s.unlocked, level+1); leveledUp=true; }
+    else if(acc >= 0.8 && level < 3){ s.unlocked = Math.max(s.unlocked, level+1); }
+    save();
+    finishGame(kind, correctCount, GAME_LEN, results, leveledUp);
+  }
+  next();
+}
+
+function progressBar(round, results){
+  let dots='';
+  for(let i=0;i<GAME_LEN;i++){
+    let cls='dot';
+    if(i<results.length) cls += results[i]?' done':' miss';
+    dots += `<div class="${cls}"></div>`;
+  }
+  return `<div class="progress">${dots}</div>`;
+}
+
+/* ---- WORDS ---- */
+function buildWordRound(round, level, results, onResult){
+  clearMain();
+  const item = rand(WORD_ITEMS);
+  const wrap=document.createElement('div');
+
+  if(level===2){
+    // Match the picture to the right WORD (whole-word reading)
+    const others = shuffle(WORD_ITEMS.filter(x=>x.w!==item.w)).slice(0,2).map(x=>x.w);
+    const opts = shuffle([item.w, ...others]);
+    wrap.innerHTML = `${progressBar(round,results)}
+      <div class="prompt-emoji">${item.e}</div>
+      <div class="hint">Which word is this?</div>
+      <div class="options"></div>
+      <button class="speak-btn">🔊 Say the words</button>`;
+    app.appendChild(wrap);
+    const box=wrap.querySelector('.options');
+    opts.forEach(w=>{
+      const b=document.createElement('button'); b.className='opt word-opt'; b.textContent=w;
+      b.addEventListener('click',()=>handleChoice(b, w===item.w, box, onResult, ()=>say('This is '+item.w)));
+      box.appendChild(b);
+    });
+    wrap.querySelector('.speak-btn').addEventListener('click',()=>{ opts.forEach((w,i)=>setTimeout(()=>say(w),i*900)); });
+    say('Which word is this?');
+    return;
+  }
+
+  // level 1: first letter, level 3: last letter
+  const useLast = level===3;
+  const correct = useLast ? item.w.replace(/ /g,'').slice(-1) : item.w[0];
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const opts = shuffle([correct, ...shuffle(letters.filter(l=>l!==correct)).slice(0,2)]);
+  wrap.innerHTML = `${progressBar(round,results)}
+    <div class="prompt-emoji">${item.e}</div>
+    <div class="prompt">${item.w}</div>
+    <div class="hint">Which letter does it ${useLast?'end':'start'} with?</div>
+    <div class="options cols3"></div>
+    <button class="speak-btn">🔊 Say it</button>`;
+  app.appendChild(wrap);
+  const box=wrap.querySelector('.options');
+  opts.forEach(l=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=l;
+    b.addEventListener('click',()=>handleChoice(b, l===correct, box, onResult, ()=>say(item.w+(useLast?' ends':' starts')+' with '+correct)));
+    box.appendChild(b);
+  });
+  wrap.querySelector('.speak-btn').addEventListener('click',()=>say(item.w+'. '+item.w+(useLast?' ends':' starts')+' with '+correct));
+  say(item.w+'. What letter does it '+(useLast?'end':'start')+' with?');
+}
+
+/* ---- MATH ---- */
+function buildMathRound(round, level, results, onResult){
+  clearMain();
+  const obj = rand(['🍎','⭐','🐟','🎈','🌸','🍪','🦆','🐝']);
+  let question, answer, visual;
+
+  if(level===1){
+    const n = 1+Math.floor(Math.random()*5); // 1..5
+    answer=n;
+    visual=`<div class="count-area">${Array.from({length:n}).map(()=>`<span class="count-obj">${obj}</span>`).join('')}</div>`;
+    question='How many?'; say('How many can you count?');
+  } else if(level===2){
+    if(Math.random()<0.5){
+      const n=3+Math.floor(Math.random()*6); // 3..8 counting
+      answer=n; visual=`<div class="count-area">${Array.from({length:n}).map(()=>`<span class="count-obj">${obj}</span>`).join('')}</div>`;
+      question='How many?'; say('How many can you count?');
+    } else {
+      const a=1+Math.floor(Math.random()*3), b=1+Math.floor(Math.random()*3); answer=a+b;
+      visual=addVisual(obj,a,b); question=`${a} + ${b} = ?`; say(a+' plus '+b+'. How many all together?');
+    }
+  } else {
+    if(Math.random()<0.5){
+      const a=2+Math.floor(Math.random()*4), b=1+Math.floor(Math.random()*4); answer=a+b;
+      visual=addVisual(obj,a,b); question=`${a} + ${b} = ?`; say(a+' plus '+b+'. How many all together?');
+    } else {
+      let a=3+Math.floor(Math.random()*5); let b=1+Math.floor(Math.random()*(a-1)); answer=a-b;
+      visual=`<div class="count-area">
+        ${Array.from({length:a}).map((_,i)=>`<span class="count-obj" style="${i>=a-b?'opacity:.25;text-decoration:line-through;':''}">${obj}</span>`).join('')}
+      </div>`;
+      question=`${a} − ${b} = ?`; say(a+' take away '+b+'. How many are left?');
+    }
+  }
+
+  const opts=new Set([answer]);
+  while(opts.size<3){ const d=Math.max(0, answer+(Math.floor(Math.random()*5)-2)); opts.add(d); }
+  const optArr=shuffle([...opts]);
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`${progressBar(round,results)}
+    <div class="prompt">${question}</div>
+    ${visual}
+    <div class="options cols3"></div>
+    <button class="speak-btn">🔊 Count with me</button>`;
+  app.appendChild(wrap);
+  const box=wrap.querySelector('.options');
+  optArr.forEach(v=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=v;
+    b.addEventListener('click',()=>handleChoice(b, v===answer, box, onResult, ()=>say('The answer is '+answer)));
+    box.appendChild(b);
+  });
+  wrap.querySelector('.speak-btn').addEventListener('click',()=>{
+    let i=0; const t=Math.max(1,answer); const iv=setInterval(()=>{ i++; say(String(i)); if(i>=t) clearInterval(iv); },650);
+  });
+}
+function addVisual(obj,a,b){
+  return `<div class="count-area">
+    ${Array.from({length:a}).map(()=>`<span class="count-obj">${obj}</span>`).join('')}
+    <span style="align-self:center;font-size:2.2rem;">➕</span>
+    ${Array.from({length:b}).map(()=>`<span class="count-obj">${obj}</span>`).join('')}
+  </div>`;
+}
+
+/* ---- PATTERNS ---- */
+function buildPatternRound(round, level, results, onResult){
+  clearMain();
+  let seq=[], answer, pool;
+  if(level===3){
+    const set=rand(PATTERN_TRIPLES); const [a,b,c]=Array.from(set);
+    const base=[a,b,c]; for(let i=0;i<5;i++) seq.push(base[i%3]); answer=base[5%3]; pool=[a,b,c];
+  } else {
+    const set=rand(PATTERN_PAIRS); const [a,b]=Array.from(set);
+    const len = level===2?5:4;
+    for(let i=0;i<len;i++) seq.push(i%2===0?a:b);
+    answer = len%2===0?a:b; pool=[a,b];
+  }
+  const extras=['🟣','🟠','⚫','💚','🟤','🩷'].filter(x=>!pool.includes(x));
+  const opts=shuffle([...new Set([answer, ...pool, rand(extras)])]).slice(0,3);
+  if(!opts.includes(answer)) opts[0]=answer;
+  const finalOpts=shuffle(opts);
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`${progressBar(round,results)}
+    <div class="hint">What comes next?</div>
+    <div class="pattern-row">${seq.map(x=>`<span>${x}</span>`).join('')}<span class="pattern-q">❓</span></div>
+    <div class="options cols3"></div>
+    <button class="speak-btn">🔊 What comes next?</button>`;
+  app.appendChild(wrap);
+  const box=wrap.querySelector('.options');
+  finalOpts.forEach(x=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=x;
+    b.addEventListener('click',()=>handleChoice(b, x===answer, box, onResult, ()=>say('Look at the pattern again')));
+    box.appendChild(b);
+  });
+  wrap.querySelector('.speak-btn').addEventListener('click',()=>say('The pattern repeats. What comes next?'));
+  say('What comes next in the pattern?');
+}
+
+/* shared single-answer handler */
+function handleChoice(btn, isCorrect, box, onResult, sayWrong){
+  if(box.dataset.locked) return;
+  if(isCorrect){
+    box.dataset.locked='1'; btn.classList.add('correct');
+    box.querySelectorAll('.opt').forEach(o=>{ if(o!==btn) o.classList.add('dim'); });
+    goodSound(); onResult(true);
+  } else {
+    btn.classList.add('wrong'); nudgeSound(); sayWrong&&sayWrong();
+    box.dataset.hadmiss='1';
+    setTimeout(()=>btn.classList.remove('wrong'),500);
+    say('Try again!');
+  }
+}
+
+/* ---- MEMORY (counts as one "correct" round when solved) ---- */
+function buildMemoryRound(round, level, results, onResult){
+  clearMain();
+  const pairsCount = level===1?4 : level===2?6 : 8;
+  const cols = pairsCount<=4?2 : 3;
+  screenTitle.textContent='Memory · Lvl '+level;
+  const chosen=shuffle(MEMORY_EMOJIS).slice(0,pairsCount);
+  const deck=shuffle([...chosen,...chosen]);
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`${progressBar(round,results)}
+    <div class="hint">Find the matching pairs! 🌙</div>
+    <div class="memory-grid" style="grid-template-columns:repeat(${cols},1fr);"></div>`;
+  app.appendChild(wrap);
+  const grid=wrap.querySelector('.memory-grid');
+  let first=null, lock=false, matched=0, misses=0;
+  deck.forEach(emo=>{
+    const c=document.createElement('button'); c.className='mcard'; c.innerHTML=`<span class="face">${emo}</span>`; c.dataset.e=emo;
+    c.addEventListener('click',()=>{
+      if(lock||c.classList.contains('flipped')||c.classList.contains('matched')) return;
+      tapSound(); c.classList.add('flipped');
+      if(!first){ first=c; return; }
+      if(first.dataset.e===c.dataset.e){
+        first.classList.add('matched'); c.classList.add('matched'); goodSound(); matched++; first=null;
+        if(matched===pairsCount){
+          addStar(1);
+          onResult(true); // memory session solved counts as success
+        }
+      } else {
+        misses++; lock=true;
+        setTimeout(()=>{ first.classList.remove('flipped'); c.classList.remove('flipped'); first=null; lock=false; },800);
+      }
+    });
+    grid.appendChild(c);
+  });
+  say('Find the matching pairs!');
+}
+
+/* ============================================================
+   MIXED
+   ============================================================ */
+function startMixed(){
+  const order=shuffle(['words','math','pattern','words','math']);
+  let idx=0, correct=0, results=[];
+  function next(){
+    if(idx>=order.length){ finishGame('mixed', correct, order.length, results, false); return; }
+    const kind=order[idx++]; screenTitle.textContent='Surprise 🌟';
+    const lv = DATA.skills[kind].level;
+    const cb=(ok)=>{ results.push(ok); if(ok){correct++; addStar(1);} setTimeout(()=> ok?showReward(rand(['Yay!','Great!','Wow!','Nice!']),next):next(), ok?650:300); };
+    if(kind==='words') buildWordRound(idx, lv, results, cb);
+    else if(kind==='math') buildMathRound(idx, lv, results, cb);
+    else buildPatternRound(idx, lv, results, cb);
+  }
+  next();
+}
+
+/* ============================================================
+   FINISH SCREEN (score + level up)
+   ============================================================ */
+function finishGame(kind, correct, total, results, leveledUp){
+  clearMain(); screenTitle.textContent='';
+  const pct = Math.round(correct/total*100);
+  let medal = pct>=100?'🏆':pct>=80?'🌟':pct>=60?'✨':'🌙';
+  const wrap=document.createElement('div');
+  const levelMsg = leveledUp
+    ? `<div class="score-line" style="color:var(--star)">🎉 Level Up! Now Level ${DATA.skills[kind].level} 🎉</div>` : '';
+  wrap.innerHTML=`
+    <div class="big-done">${medal}</div>
+    <div class="greeting">All done!</div>
+    <div class="score-line">You got ${correct} out of ${total}</div>
+    ${levelMsg}
+    <div class="subtitle">⭐ ${DATA.stars} stars total</div>
+    <button class="next-btn" id="again">Play again</button>
+    <div style="height:12px"></div>
+    <button class="speak-btn" id="home">🏠 Back home</button>
+    <div class="subtitle" style="margin-top:20px;opacity:.7;">Sweet dreams! 🌙</div>`;
+  app.appendChild(wrap);
+  if(leveledUp){ levelUpSound(); setTimeout(()=>say('Level up! Great work!'),200); }
+  else { winSound(); }
+  launchConfetti();
+  if(!leveledUp) say('All done! You got '+correct+' out of '+total+'. Sweet dreams!');
+  wrap.querySelector('#again').addEventListener('click',()=>{ tapSound(); kind==='mixed'?startMixed():showLevelSelect(kind); });
+  wrap.querySelector('#home').addEventListener('click',()=>{ tapSound(); goHome(); });
+}
+
+/* ============================================================
+   GROWN-UP DASHBOARD  (progress + recommendations)
+   ============================================================ */
+function showDashboard(){
+  clearMain(); screenTitle.textContent='Progress 📊';
+  const totalAnswered = Object.values(DATA.skills).reduce((a,s)=>a+s.total,0);
+  const totalCorrect  = Object.values(DATA.skills).reduce((a,s)=>a+s.correct,0);
+  const overallAcc = totalAnswered? Math.round(totalCorrect/totalAnswered*100):0;
+  const gamesPlayed = Object.values(DATA.skills).reduce((a,s)=>a+s.played,0);
+
+  const recs = buildRecommendations();
+
+  const wrap=document.createElement('div'); wrap.className='dash';
+  wrap.innerHTML = `
+    <h2>${childName()}'s Report Card</h2>
+    <div class="sub">A little every night adds up 🌙</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num">⭐${DATA.stars}</div><div class="cap">Stars earned</div></div>
+      <div class="stat-box"><div class="num">${gamesPlayed}</div><div class="cap">Games played</div></div>
+      <div class="stat-box"><div class="num">${overallAcc}%</div><div class="cap">Correct</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num">🔥${DATA.dayStreak}</div><div class="cap">Night streak</div></div>
+      <div class="stat-box"><div class="num">${totalAnswered}</div><div class="cap">Questions done</div></div>
+    </div>
+    <div id="skills"></div>
+    <div class="recs">
+      <h3>💡 How to help ${childName()} improve</h3>
+      <ul>${recs.map(r=>`<li>${r}</li>`).join('')}</ul>
+    </div>
+    <button class="reset-btn" id="resetBtn">Reset all progress</button>
+  `;
+  app.appendChild(wrap);
+
+  const skillsBox = wrap.querySelector('#skills');
+  ['words','math','pattern','memory'].forEach(k=>{
+    const s=DATA.skills[k];
+    const acc = s.total? Math.round(s.correct/s.total*100):0;
+    const mastery = s.total===0 ? 0 : Math.min(100, Math.round(((s.level-1)/2)*60 + (acc/100)*40));
+    const label = s.total===0 ? 'Not started yet' :
+      `${SKILL_INFO[k].name} accuracy ${acc}% · best streak ${s.bestStreak} · ${s.played} game${s.played!==1?'s':''}`;
+    const card=document.createElement('div'); card.className='skill-card';
+    card.innerHTML=`
+      <div class="skill-top">
+        <div class="skill-name">${SKILL_INFO[k].icon} ${SKILL_INFO[k].name}</div>
+        <div class="skill-lvl">Level ${s.level} · ${LEVEL_NAMES[s.level]}</div>
+      </div>
+      <div class="bar"><span style="width:${mastery}%"></span></div>
+      <div class="skill-meta">${label}</div>`;
+    skillsBox.appendChild(card);
+  });
+
+  wrap.querySelector('#resetBtn').addEventListener('click',()=>{
+    if(confirm('Reset all stars, levels and progress? This cannot be undone.')){
+      DATA = structuredClone(DEFAULT_DATA); save(); refreshStars(); showDashboard();
+    }
+  });
+}
+
+function childName(){ return 'Your child'; }
+
+/* Recommendation engine — turns the stats into plain-language parent tips */
+function buildRecommendations(){
+  const recs=[];
+  const skills = DATA.skills;
+  const anyPlayed = Object.values(skills).some(s=>s.total>0 || s.played>0);
+
+  if(!anyPlayed){
+    return [
+      'Start with <b>Words</b> and <b>Math</b> at Level 1 — just 5 questions each. Keep it short and playful before bed.',
+      'Sit together and let your child tap the answers. Tap 🔊 so the game reads each question aloud.',
+      'Aim for one short round every night — the app tracks a nightly streak to build the habit.'
+    ];
+  }
+
+  // find weakest & strongest by accuracy (only among played skills)
+  const played = Object.entries(skills).filter(([k,s])=>s.total>0);
+  if(played.length){
+    played.sort((a,b)=> (a[1].correct/a[1].total) - (b[1].correct/b[1].total));
+    const [weakK, weak] = played[0];
+    const weakAcc = Math.round(weak.correct/weak.total*100);
+    const [strongK, strong] = played[played.length-1];
+    const strongAcc = Math.round(strong.correct/strong.total*100);
+
+    if(weakAcc < 60){
+      recs.push(`<b>Focus area: ${SKILL_INFO[weakK].name}</b> (${weakAcc}% correct). Play it at <b>Level ${weak.level}</b> a few more times. ${weakTip(weakK)}`);
+    } else if(weakAcc < 80){
+      recs.push(`<b>${SKILL_INFO[weakK].name}</b> is coming along (${weakAcc}%). A little more practice at Level ${weak.level} and it'll click. ${weakTip(weakK)}`);
+    }
+    if(strongAcc >= 80 && strong.level < 3){
+      recs.push(`Great at <b>${SKILL_INFO[strongK].name}</b> (${strongAcc}%)! Try the next level for a fun challenge.`);
+    }
+    if(strongAcc >= 80 && strong.level === 3){
+      recs.push(`⭐ <b>${SKILL_INFO[strongK].name}</b> is mastered — Level 3 with ${strongAcc}%! Wonderful work.`);
+    }
+  }
+
+  // untouched skills
+  const untouched = Object.entries(skills).filter(([k,s])=>s.total===0 && s.played===0).map(([k])=>k);
+  if(untouched.length){
+    recs.push(`Haven't tried <b>${untouched.map(k=>SKILL_INFO[k].name).join(' & ')}</b> yet — a fresh game keeps bedtime exciting.`);
+  }
+
+  // streak nudge
+  if(DATA.dayStreak >= 3) recs.push(`🔥 ${DATA.dayStreak} nights in a row — keep the streak alive tonight!`);
+  else recs.push('Try to play a short round every night — routine is what makes it stick.');
+
+  return recs.slice(0,5);
+}
+function weakTip(k){
+  return ({
+    words:  'Away from the app, point out first letters on signs and books ("B is for bed!").',
+    math:   'Count real things together — stairs, toys, spoons — to build number sense.',
+    pattern:'Make patterns with toys or blocks (red, blue, red, blue…) and ask what comes next.',
+    memory: 'Play with fewer cards first; naming each picture out loud helps him remember.'
+  })[k] || '';
+}
+
+/* ============================================================
+   START
+   ============================================================ */
+goHome();
+document.body.addEventListener('touchstart',()=>{ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} },{once:true});
+</script>
+</body>
+</html>
