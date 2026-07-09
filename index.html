@@ -268,20 +268,46 @@ function winSound(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.1
 function levelUpSound(){ [523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>beep(f,0.2,'triangle'),i*100)); }
 function tapSound(){ beep(440,0.06,'sine',0.08); }
 function nudgeSound(){ beep(300,0.12,'sine',0.08); }
+// Pick the most natural human-sounding voice the device offers (voices load async).
+let chosenVoice = null;
+function loadVoices(){
+  try{
+    const voices = speechSynthesis.getVoices();
+    if(!voices || !voices.length) return;
+    // Preference order: known warm, natural voices across Apple / Google / Windows.
+    const prefer = ['Samantha','Ava','Allison','Serena','Karen','Moira','Tessa',
+      'Google US English','Google UK English Female',
+      'Microsoft Aria','Microsoft Jenny','Microsoft Michelle','Microsoft Zira'];
+    for(const name of prefer){
+      const v = voices.find(x=>x.name===name) || voices.find(x=>x.name.includes(name));
+      if(v){ chosenVoice = v; return; }
+    }
+    chosenVoice = voices.find(x=>/en[-_]US/i.test(x.lang))
+      || voices.find(x=>/^en/i.test(x.lang)) || voices[0];
+  }catch(e){}
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+function mkUtter(text){
+  const u = new SpeechSynthesisUtterance(text);
+  if(chosenVoice) u.voice = chosenVoice;
+  u.rate = 0.92; u.pitch = 1.0; u.volume = 1;  // natural, calm bedtime tone
+  return u;
+}
 function say(text){
   try{
     if(!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate=0.9; u.pitch=1.15; u.volume=1;
-    speechSynthesis.speak(u);
+    speechSynthesis.speak(mkUtter(text));
   }catch(e){}
 }
 function sayMany(lines){
   try{
     if(!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
-    lines.forEach(t=>{ const u=new SpeechSynthesisUtterance(t); u.rate=0.9; u.pitch=1.15; speechSynthesis.speak(u); });
+    lines.forEach(t=> speechSynthesis.speak(mkUtter(t)));
   }catch(e){}
 }
 
