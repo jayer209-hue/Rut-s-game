@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1220">
+<title>Brain Boost — Mila</title>
+<style>
+  :root{
+    --bg1:#0f1220; --bg2:#171a2e; --panel:#1c2038; --panel2:#232848;
+    --text:#eef1ff; --muted:#9aa2c8; --line:rgba(255,255,255,.08);
+    --violet:#8b7bff; --cyan:#4fd6e8; --pink:#ff7bb0; --green:#54e0a3; --amber:#ffcb5b; --red:#ff6b7d;
+    --grad:linear-gradient(135deg,#8b7bff,#4fd6e8);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg1);color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden;}
+  #app{height:100%;display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    background:radial-gradient(1200px 600px at 50% -10%, #23284a 0%, var(--bg1) 55%);}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px;}
+  .brand{font-weight:800;font-size:1.15rem;letter-spacing:.3px;display:flex;align-items:center;gap:8px;}
+  .brand .logo{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font-size:1rem;}
+  .back-btn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;
+    width:44px;height:44px;font-size:1.2rem;cursor:pointer;display:none;place-items:center;}
+  .back-btn.show{display:grid;}
+  .xp-chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 12px;
+    font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .xp-chip .lvl{color:var(--cyan);} .xp-chip .xp{color:var(--amber);}
+  .main{flex:1;overflow-y:auto;padding:6px 18px 30px;}
+  .wrap{max-width:640px;margin:0 auto;}
+
+  /* Home */
+  .hero{text-align:center;margin:10px 0 8px;}
+  .hero h1{font-size:1.9rem;margin:0 0 4px;font-weight:800;}
+  .hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p{color:var(--muted);margin:0;font-size:.95rem;}
+  .levelbar{margin:14px auto 4px;max-width:420px;}
+  .levelbar .row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:5px;}
+  .track{height:10px;background:var(--panel);border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+  .track>span{display:block;height:100%;background:var(--grad);border-radius:6px;transition:width .6s;}
+
+  .cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;}
+  .cat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;cursor:pointer;
+    text-align:left;color:var(--text);font-family:inherit;transition:transform .1s,border-color .2s;position:relative;overflow:hidden;}
+  .cat:active{transform:scale(.97);}
+  .cat .ic{font-size:1.8rem;}
+  .cat .nm{font-weight:800;font-size:1.05rem;margin-top:6px;}
+  .cat .ds{color:var(--muted);font-size:.8rem;margin-top:2px;line-height:1.3;}
+  .cat .glow{position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:.5;}
+  .cat.full{grid-column:1/-1;display:flex;align-items:center;gap:14px;}
+  .cat.full .ic{font-size:1.6rem;}
+  .cat.full .txt{flex:1;}
+  .cat.stats{background:linear-gradient(135deg,#20244400,#2a2f55);}
+
+  .settings-row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+  .toggle{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 14px;font-size:.85rem;
+    cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:8px;font-family:inherit;}
+  .toggle.on{color:var(--text);border-color:var(--violet);}
+  .toggle .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);}
+  .toggle.on .dot{background:var(--green);}
+
+  /* Difficulty select */
+  .diff-list{display:grid;gap:12px;margin-top:16px;}
+  .diff{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;cursor:pointer;
+    color:var(--text);font-family:inherit;display:flex;align-items:center;gap:14px;text-align:left;transition:transform .1s;}
+  .diff:active{transform:scale(.98);}
+  .diff .b{font-size:1.6rem;}
+  .diff .t{font-weight:800;font-size:1.1rem;}
+  .diff .s{color:var(--muted);font-size:.82rem;}
+  .diff .hi{margin-left:auto;text-align:right;font-size:.75rem;color:var(--muted);}
+  .diff .hi b{color:var(--amber);font-size:1rem;display:block;}
+
+  /* Quiz */
+  .quiz-top{display:flex;align-items:center;gap:12px;margin:8px 0 4px;}
+  .qcount{font-size:.85rem;color:var(--muted);font-weight:700;white-space:nowrap;}
+  .timer{flex:1;height:8px;background:var(--panel);border-radius:5px;overflow:hidden;border:1px solid var(--line);}
+  .timer>span{display:block;height:100%;background:var(--grad);width:100%;}
+  .scorepill{font-size:.85rem;font-weight:800;color:var(--amber);white-space:nowrap;}
+  .streak{font-size:.8rem;color:var(--pink);font-weight:700;white-space:nowrap;}
+  .qcard{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px 20px;margin-top:14px;}
+  .qtag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--cyan);background:rgba(79,214,232,.12);
+    padding:3px 10px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+  .qtext{font-size:1.35rem;font-weight:700;line-height:1.35;}
+  .answers{display:grid;gap:11px;margin-top:18px;}
+  .ans{background:var(--panel2);border:2px solid transparent;border-radius:14px;padding:15px 16px;font-size:1.05rem;
+    cursor:pointer;color:var(--text);font-family:inherit;text-align:left;transition:transform .08s,background .15s,border-color .15s;font-weight:600;}
+  .ans:active{transform:scale(.98);}
+  .ans.correct{background:rgba(84,224,163,.18);border-color:var(--green);}
+  .ans.wrong{background:rgba(255,107,125,.16);border-color:var(--red);}
+  .ans.disabled{opacity:.55;}
+  .explain{margin-top:16px;background:var(--panel2);border-left:3px solid var(--cyan);border-radius:10px;
+    padding:13px 15px;font-size:.92rem;color:var(--muted);line-height:1.45;display:none;}
+  .explain.show{display:block;animation:fade .3s;}
+  .explain b{color:var(--text);}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .next{display:none;margin-top:16px;width:100%;background:var(--grad);color:#0f1220;border:none;border-radius:14px;
+    padding:15px;font-size:1.05rem;font-weight:800;cursor:pointer;font-family:inherit;}
+  .next.show{display:block;animation:fade .3s;}
+  .next:active{transform:scale(.98);}
+
+  /* Results */
+  .result{text-align:center;padding-top:10px;}
+  .result .emoji{font-size:3.4rem;}
+  .result h2{font-size:1.8rem;margin:6px 0 2px;}
+  .result .grade{color:var(--muted);margin-bottom:16px;}
+  .rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 auto 8px;max-width:460px;}
+  .rbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 8px;}
+  .rbox .n{font-size:1.5rem;font-weight:800;}
+  .rbox .c{font-size:.72rem;color:var(--muted);margin-top:2px;}
+  .rbox.xp .n{color:var(--amber);} .rbox.acc .n{color:var(--cyan);} .rbox.st .n{color:var(--pink);}
+  .newhi{color:var(--amber);font-weight:800;margin:10px 0;display:none;}
+  .newhi.show{display:block;animation:fade .4s;}
+  .lvlup{background:linear-gradient(135deg,rgba(139,123,255,.2),rgba(79,214,232,.2));border:1px solid var(--violet);
+    border-radius:14px;padding:14px;margin:12px auto;max-width:460px;display:none;}
+  .lvlup.show{display:block;animation:fade .4s;}
+  .btn-row{display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:14px;padding:14px 24px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;}
+  .btn.primary{background:var(--grad);color:#0f1220;}
+  .btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line);}
+
+  /* Dashboard */
+  .dash h2{text-align:center;margin:6px 0 2px;font-size:1.6rem;}
+  .dash .sub{text-align:center;color:var(--muted);margin-bottom:16px;font-size:.9rem;}
+  .dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .skill{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;}
+  .skill .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .skill .nm{font-weight:800;display:flex;gap:8px;align-items:center;}
+  .skill .hi{font-size:.78rem;color:var(--amber);font-weight:700;}
+  .skill .meta{font-size:.78rem;color:var(--muted);margin-top:6px;}
+  .recs{background:linear-gradient(135deg,rgba(255,203,91,.08),rgba(255,123,176,.08));border:1px solid rgba(255,203,91,.3);
+    border-radius:14px;padding:14px 16px;margin-top:6px;}
+  .recs h3{margin:0 0 8px;font-size:1rem;color:var(--amber);}
+  .recs li{font-size:.88rem;line-height:1.4;margin-bottom:6px;color:var(--text);}
+  .recs ul{margin:0;padding-left:18px;}
+  .reset{display:block;margin:16px auto 0;background:transparent;border:1px solid var(--line);color:var(--muted);
+    font-size:.82rem;padding:8px 16px;border-radius:12px;cursor:pointer;font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="back-btn" id="backBtn">←</button>
+      <div class="brand"><span class="logo">🧠</span> Brain Boost</div>
+    </div>
+    <div class="xp-chip">Lvl <span class="lvl" id="lvlNum">1</span> · <span class="xp" id="xpNum">0</span> XP</div>
+  </div>
+  <div class="main"><div class="wrap" id="view"></div></div>
+</div>
+
+<script>
+/* ============================================================
+   Brain Boost — a challenging brain-training quiz for Mila (11)
+   Vocabulary • Math • Logic • Science • Geography
+   Difficulty tiers, timer + speed bonus, XP levels, high scores, stats.
+   Single file, offline. All content self-contained.
+   ============================================================ */
+const view = document.getElementById('view');
+const backBtn = document.getElementById('backBtn');
+const lvlNum = document.getElementById('lvlNum');
+const xpNum = document.getElementById('xpNum');
+
+/* ---------- persistence ---------- */
+const DEFAULT = {
+  xp:0, lastPlayed:null, dayStreak:0,
+  sound:true, timer:true,
+  cats:{
+    vocab:{plays:0,correct:0,total:0,bestStreak:0,high:0},
+    math:{plays:0,correct:0,total:0,bestStreak:0,high:0},
+    logic:{plays:0,correct:0,total:0,bestStreak:0,high:0},
+    science:{plays:0,correct:0,total:0,bestStreak:0,high:0},
+    geo:{plays:0,correct:0,total:0,bestStreak:0,high:0}
+  }
+};
+let D = loadData();
+function loadData(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('mila_data'));
+    if(!raw) return structuredClone(DEFAULT);
+    const d=structuredClone(DEFAULT);
+    d.xp=raw.xp||0; d.lastPlayed=raw.lastPlayed||null; d.dayStreak=raw.dayStreak||0;
+    d.sound=raw.sound!==false; d.timer=raw.timer!==false;
+    for(const k in d.cats){ if(raw.cats&&raw.cats[k]) Object.assign(d.cats[k],raw.cats[k]); }
+    return d;
+  }catch(e){ return structuredClone(DEFAULT); }
+}
+function save(){ localStorage.setItem('mila_data', JSON.stringify(D)); }
+
+// daily streak
+(function(){ const t=today(); if(D.lastPlayed!==t){ D.dayStreak = D.lastPlayed===yesterday()?D.dayStreak+1:1; D.lastPlayed=t; save(); } })();
+function today(){ return new Date().toISOString().slice(0,10); }
+function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+
+/* ---------- level system ---------- */
+const TITLES=['Rookie','Thinker','Sharp Mind','Quick Wit','Brainiac','Whiz','Genius','Mastermind','Prodigy','Legend'];
+function levelFromXP(xp){ return Math.floor(Math.sqrt(xp/300))+1; }
+function xpForLevel(l){ return Math.pow(l-1,2)*300; } // inverse
+function levelTitle(l){ return TITLES[Math.min(l-1,TITLES.length-1)]; }
+function refreshXP(){ lvlNum.textContent=levelFromXP(D.xp); xpNum.textContent=D.xp.toLocaleString(); }
+refreshXP();
+
+/* ---------- sound ---------- */
+let actx;
+function beep(f,dur=.12,type='sine',vol=.14){ if(!D.sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain(); o.type=type;o.frequency.value=f;g.gain.value=vol;
+  o.connect(g);g.connect(actx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);o.stop(actx.currentTime+dur);}catch(e){} }
+const sGood=()=>{beep(660,.1,'sine');setTimeout(()=>beep(920,.14,'sine'),90);};
+const sBad=()=>beep(200,.18,'sawtooth',.1);
+const sWin=()=>[523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>beep(f,.16,'triangle'),i*90));
+const sTap=()=>beep(430,.05,'sine',.07);
+
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
+const CATS={
+  vocab:{name:'Vocabulary', icon:'📖', color:'#8b7bff', ds:'Synonyms, antonyms & meanings'},
+  math:{name:'Math', icon:'🔢', color:'#4fd6e8', ds:'Arithmetic to pre-algebra'},
+  logic:{name:'Logic', icon:'🧩', color:'#54e0a3', ds:'Sequences & analogies'},
+  science:{name:'Science', icon:'🔬', color:'#ff7bb0', ds:'How the world works'},
+  geo:{name:'Geography', icon:'🌍', color:'#ffcb5b', ds:'Countries, capitals & flags'}
+};
+const DIFFS=[
+  {k:1,name:'Easy',    b:'🌱', s:'Warm up',            time:30},
+  {k:2,name:'Medium',  b:'⚡', s:'A solid challenge',  time:25},
+  {k:3,name:'Hard',    b:'🔥', s:'Think fast',         time:20},
+  {k:4,name:'Expert',  b:'💎', s:'For the very smart', time:16}
+];
+const QUIZ_LEN=10;
+
+/* --- Vocabulary bank (d = difficulty 1-4) --- */
+const VOCAB=[
+  {q:'Which word means the SAME as <b>rapid</b>?',o:['swift','slow','late','heavy'],a:'swift',e:'Rapid means very fast — a synonym is <b>swift</b>.',d:1},
+  {q:'Which word means the SAME as <b>enormous</b>?',o:['immense','tiny','plain','narrow'],a:'immense',e:'Enormous = extremely large = <b>immense</b>.',d:1},
+  {q:'Which word is the OPPOSITE of <b>ancient</b>?',o:['modern','old','historic','aged'],a:'modern',e:'Ancient means very old, so its antonym is <b>modern</b>.',d:1},
+  {q:'Which word means the SAME as <b>brave</b>?',o:['courageous','timid','weak','calm'],a:'courageous',e:'Brave = <b>courageous</b>, willing to face danger.',d:1},
+  {q:'A <b>novice</b> is a…',o:['beginner','expert','champion','teacher'],a:'beginner',e:'A <b>novice</b> is someone new to an activity — a beginner.',d:1},
+  {q:'Which word means the SAME as <b>candid</b>?',o:['honest','secretive','rude','shy'],a:'honest',e:'Candid means open and truthful — <b>honest</b>.',d:2},
+  {q:'Which word is the OPPOSITE of <b>generous</b>?',o:['stingy','giving','kind','wealthy'],a:'stingy',e:'Generous means giving freely; the opposite is <b>stingy</b>.',d:2},
+  {q:'<b>Meticulous</b> most nearly means…',o:['very careful','careless','enormous','angry'],a:'very careful',e:'Meticulous = showing great attention to detail — <b>very careful</b>.',d:2},
+  {q:'Which word means the SAME as <b>diligent</b>?',o:['hardworking','lazy','clever','quiet'],a:'hardworking',e:'Diligent means <b>hardworking</b> and careful.',d:2},
+  {q:'To <b>persevere</b> is to…',o:['keep trying','give up','relax','forget'],a:'keep trying',e:'Persevere means to <b>keep trying</b> despite difficulty.',d:2},
+  {q:'Which word is the OPPOSITE of <b>transparent</b>?',o:['opaque','clear','glassy','honest'],a:'opaque',e:'Transparent lets light through; <b>opaque</b> does not.',d:3},
+  {q:'<b>Gregarious</b> most nearly means…',o:['sociable','shy','greedy','tired'],a:'sociable',e:'A gregarious person is <b>sociable</b> and enjoys company.',d:3},
+  {q:'<b>Ambiguous</b> most nearly means…',o:['unclear','obvious','funny','certain'],a:'unclear',e:'Ambiguous means open to more than one meaning — <b>unclear</b>.',d:3},
+  {q:'Which word means the SAME as <b>eloquent</b>?',o:['well-spoken','silent','clumsy','angry'],a:'well-spoken',e:'Eloquent means fluent and persuasive — <b>well-spoken</b>.',d:3},
+  {q:'<b>Benevolent</b> most nearly means…',o:['kind','cruel','wealthy','strict'],a:'kind',e:'Benevolent means well-meaning and <b>kind</b>.',d:3},
+  {q:'Something <b>inevitable</b> is…',o:['unavoidable','optional','rare','sudden'],a:'unavoidable',e:'Inevitable means certain to happen — <b>unavoidable</b>.',d:4},
+  {q:'Which word is the OPPOSITE of <b>frugal</b>?',o:['wasteful','thrifty','careful','cheap'],a:'wasteful',e:'Frugal means careful with money; the opposite is <b>wasteful</b>.',d:4},
+  {q:'<b>Ephemeral</b> most nearly means…',o:['short-lived','eternal','massive','ancient'],a:'short-lived',e:'Ephemeral means lasting a very short time — <b>short-lived</b>.',d:4},
+  {q:'To <b>scrutinize</b> is to…',o:['examine closely','ignore','destroy','praise'],a:'examine closely',e:'Scrutinize means to <b>examine closely</b> and critically.',d:4},
+  {q:'<b>Resilient</b> most nearly means…',o:['able to recover','fragile','stubborn','lazy'],a:'able to recover',e:'Resilient means <b>able to recover</b> quickly from difficulty.',d:4},
+  {q:'<b>Verbose</b> most nearly means…',o:['using too many words','silent','honest','brief'],a:'using too many words',e:'Verbose means <b>using too many words</b>. (Its opposite is concise.)',d:4},
+  {q:'Which word is the OPPOSITE of <b>expand</b>?',o:['contract','stretch','grow','widen'],a:'contract',e:'Expand means to grow larger; <b>contract</b> means to shrink.',d:2}
+];
+
+/* --- Science bank --- */
+const SCIENCE=[
+  {q:'Which planet is known as the Red Planet?',o:['Mars','Venus','Jupiter','Mercury'],a:'Mars',e:'<b>Mars</b> looks red because its soil is rich in iron oxide (rust).',d:1},
+  {q:'What gas do plants absorb to make food?',o:['Carbon dioxide','Oxygen','Nitrogen','Helium'],a:'Carbon dioxide',e:'In photosynthesis plants take in <b>carbon dioxide</b> and release oxygen.',d:1},
+  {q:'What organ pumps blood around your body?',o:['Heart','Liver','Lungs','Brain'],a:'Heart',e:'The <b>heart</b> is a muscle that pumps blood through your body.',d:1},
+  {q:'How many legs does an insect have?',o:['6','4','8','10'],a:'6',e:'All insects have <b>six</b> legs (spiders have 8 and are not insects).',d:1},
+  {q:'What is the largest planet in our solar system?',o:['Jupiter','Saturn','Earth','Neptune'],a:'Jupiter',e:'<b>Jupiter</b> is the largest — over 1,300 Earths could fit inside it.',d:1},
+  {q:'What is the "powerhouse of the cell"?',o:['Mitochondria','Nucleus','Ribosome','Membrane'],a:'Mitochondria',e:'<b>Mitochondria</b> produce most of a cell’s energy (ATP).',d:2},
+  {q:'How many bones are in the adult human body?',o:['206','156','300','98'],a:'206',e:'Adults have <b>206</b> bones; babies are born with about 300 that fuse.',d:2},
+  {q:'What force pulls objects toward the Earth?',o:['Gravity','Friction','Magnetism','Tension'],a:'Gravity',e:'<b>Gravity</b> is the force of attraction between masses.',d:2},
+  {q:'Which blood cells fight infection?',o:['White blood cells','Red blood cells','Platelets','Plasma'],a:'White blood cells',e:'<b>White blood cells</b> are part of the immune system.',d:2},
+  {q:'What is the hardest natural substance?',o:['Diamond','Gold','Iron','Quartz'],a:'Diamond',e:'<b>Diamond</b> is the hardest known natural material.',d:2},
+  {q:'What is the chemical symbol for gold?',o:['Au','Gd','Go','Ag'],a:'Au',e:'Gold’s symbol is <b>Au</b>, from the Latin “aurum”. (Ag is silver.)',d:3},
+  {q:'What galaxy do we live in?',o:['Milky Way','Andromeda','Whirlpool','Sombrero'],a:'Milky Way',e:'Our solar system is in the <b>Milky Way</b> galaxy.',d:3},
+  {q:'What is the pH of a neutral solution?',o:['7','0','14','1'],a:'7',e:'A neutral solution (like pure water) has a pH of <b>7</b>.',d:3},
+  {q:'What is the largest organ of the human body?',o:['Skin','Liver','Brain','Heart'],a:'Skin',e:'The <b>skin</b> is the body’s largest organ.',d:3},
+  {q:'Approximately how fast does light travel?',o:['300,000 km/s','1,000 km/s','30 km/s','3 million km/s'],a:'300,000 km/s',e:'Light travels about <b>300,000 kilometres per second</b>.',d:4},
+  {q:'Who developed the theory of relativity?',o:['Albert Einstein','Isaac Newton','Galileo','Charles Darwin'],a:'Albert Einstein',e:'<b>Albert Einstein</b> published relativity in the early 1900s.',d:4},
+  {q:'What part of the atom has a negative charge?',o:['Electron','Proton','Neutron','Nucleus'],a:'Electron',e:'<b>Electrons</b> carry a negative charge and orbit the nucleus.',d:4},
+  {q:'Photosynthesis mainly happens in which part of a plant cell?',o:['Chloroplast','Nucleus','Vacuole','Cell wall'],a:'Chloroplast',e:'<b>Chloroplasts</b> contain chlorophyll, which captures light energy.',d:4},
+  {q:'What type of animal is a dolphin?',o:['Mammal','Fish','Amphibian','Reptile'],a:'Mammal',e:'Dolphins are <b>mammals</b> — they breathe air and feed milk to young.',d:2},
+  {q:'What state of matter has a fixed shape and volume?',o:['Solid','Liquid','Gas','Plasma'],a:'Solid',e:'A <b>solid</b> keeps a fixed shape and volume.',d:1}
+];
+
+/* --- Geography bank (includes emoji flags) --- */
+const GEO=[
+  {q:'What is the capital of France?',o:['Paris','Lyon','Marseille','Nice'],a:'Paris',e:'<b>Paris</b> is the capital of France.',d:1},
+  {q:'What is the capital of Japan?',o:['Tokyo','Kyoto','Osaka','Seoul'],a:'Tokyo',e:'<b>Tokyo</b> is Japan’s capital and largest city.',d:1},
+  {q:'What is the largest ocean on Earth?',o:['Pacific','Atlantic','Indian','Arctic'],a:'Pacific',e:'The <b>Pacific</b> Ocean is the largest and deepest.',d:1},
+  {q:'On which continent is the Sahara Desert?',o:['Africa','Asia','Australia','South America'],a:'Africa',e:'The <b>Sahara</b>, the largest hot desert, is in northern Africa.',d:1},
+  {q:'How many continents are there?',o:['7','5','6','8'],a:'7',e:'There are <b>seven</b> continents.',d:1},
+  {q:'What is the capital of Australia?',o:['Canberra','Sydney','Melbourne','Perth'],a:'Canberra',e:'It’s <b>Canberra</b>, not Sydney — a common trick question!',d:2},
+  {q:'What is the capital of Canada?',o:['Ottawa','Toronto','Vancouver','Montreal'],a:'Ottawa',e:'Canada’s capital is <b>Ottawa</b>, not Toronto.',d:2},
+  {q:'What is the tallest mountain on Earth?',o:['Mount Everest','K2','Kilimanjaro','Denali'],a:'Mount Everest',e:'<b>Mount Everest</b> is about 8,849 m above sea level.',d:2},
+  {q:'What is the capital of Brazil?',o:['Brasília','Rio de Janeiro','São Paulo','Lima'],a:'Brasília',e:'The capital is <b>Brasília</b>, a planned city built in the 1950s.',d:3},
+  {q:'What is the smallest country in the world?',o:['Vatican City','Monaco','Malta','San Marino'],a:'Vatican City',e:'<b>Vatican City</b> is the smallest country by area.',d:3},
+  {q:'Which country is the largest by area?',o:['Russia','Canada','China','USA'],a:'Russia',e:'<b>Russia</b> is the largest country in the world.',d:2},
+  {q:'Which US state is the largest by area?',o:['Alaska','Texas','California','Montana'],a:'Alaska',e:'<b>Alaska</b> is by far the largest US state.',d:3},
+  {q:'Which flag is this? 🇯🇵',o:['Japan','China','South Korea','Bangladesh'],a:'Japan',e:'A red circle on white is the flag of <b>Japan</b>.',d:2},
+  {q:'Which flag is this? 🇨🇦',o:['Canada','England','Denmark','Switzerland'],a:'Canada',e:'The red maple leaf belongs to <b>Canada</b>.',d:2},
+  {q:'Which flag is this? 🇧🇷',o:['Brazil','Portugal','Argentina','Mexico'],a:'Brazil',e:'Green with a yellow diamond and blue globe is <b>Brazil</b>.',d:3},
+  {q:'Which flag is this? 🇮🇹',o:['Italy','Ireland','Mexico','Hungary'],a:'Italy',e:'Green-white-red vertical stripes: <b>Italy</b>.',d:3},
+  {q:'What is the capital of Egypt?',o:['Cairo','Alexandria','Giza','Luxor'],a:'Cairo',e:'<b>Cairo</b> is the capital of Egypt.',d:2},
+  {q:'Which ocean lies between America and Europe?',o:['Atlantic','Pacific','Indian','Arctic'],a:'Atlantic',e:'The <b>Atlantic</b> Ocean separates the Americas from Europe/Africa.',d:1},
+  {q:'What is the capital of Germany?',o:['Berlin','Munich','Frankfurt','Hamburg'],a:'Berlin',e:'<b>Berlin</b> is Germany’s capital.',d:2},
+  {q:'What is the capital of India?',o:['New Delhi','Mumbai','Kolkata','Bangalore'],a:'New Delhi',e:'<b>New Delhi</b> is the capital of India.',d:2}
+];
+
+/* --- Curated analogies for Logic --- */
+const ANALOGIES=[
+  {q:'Puppy is to Dog as Kitten is to ___',o:['Cat','Mouse','Cub','Foal'],a:'Cat',e:'A puppy is a young dog; a kitten is a young <b>cat</b>.',d:1},
+  {q:'Glove is to Hand as Sock is to ___',o:['Foot','Arm','Shoe','Leg'],a:'Foot',e:'A glove covers a hand; a sock covers a <b>foot</b>.',d:1},
+  {q:'Second is to Minute as Minute is to ___',o:['Hour','Day','Week','Clock'],a:'Hour',e:'60 seconds make a minute; 60 minutes make an <b>hour</b>.',d:2},
+  {q:'Author is to Book as Composer is to ___',o:['Symphony','Painting','Statue','Poem'],a:'Symphony',e:'An author creates a book; a composer creates a <b>symphony</b> (music).',d:3},
+  {q:'Leaf is to Tree as Feather is to ___',o:['Bird','Sky','Wing','Nest'],a:'Bird',e:'A leaf grows on a tree; a feather grows on a <b>bird</b>.',d:2},
+  {q:'Knife is to Cut as Pen is to ___',o:['Write','Draw','Ink','Paper'],a:'Write',e:'A knife is used to cut; a pen is used to <b>write</b>.',d:2},
+  {q:'Big is to Enormous as Small is to ___',o:['Tiny','Little','Short','Narrow'],a:'Tiny',e:'Enormous is an extreme of big; <b>tiny</b> is an extreme of small.',d:3},
+  {q:'Doctor is to Patient as Teacher is to ___',o:['Student','School','Lesson','Desk'],a:'Student',e:'A doctor helps a patient; a teacher helps a <b>student</b>.',d:2},
+  {q:'Thermometer is to Temperature as Clock is to ___',o:['Time','Speed','Weight','Distance'],a:'Time',e:'A thermometer measures temperature; a clock measures <b>time</b>.',d:3},
+  {q:'Painter is to Brush as Writer is to ___',o:['Pen','Book','Word','Paint'],a:'Pen',e:'A painter’s tool is a brush; a writer’s tool is a <b>pen</b>.',d:2}
+];
+
+/* ============================================================
+   PROCEDURAL GENERATORS
+   ============================================================ */
+function numOptions(answer, spread){
+  const opts=new Set([answer]);
+  let guard=0;
+  while(opts.size<4 && guard++<50){
+    let d=answer + (ri(0,1)?1:-1)*ri(1,spread);
+    if(d<0) d=Math.abs(d)+1;
+    opts.add(d);
+  }
+  return shuffle([...opts]).map(String);
+}
+function mathQuestion(d){
+  const types = {
+    1:['mult','addsub','div'],
+    2:['mult','div','percent','fracOf','addsub'],
+    3:['order','percent','fracOf','square','div'],
+    4:['algebra','order','exponent','percent','square']
+  }[d];
+  const t=rand(types);
+  let q,a,e;
+  if(t==='mult'){ const x=ri(d<3?2:6, d<2?9:13), y=ri(d<3?2:6, d<2?9:13); a=x*y; q=`${x} × ${y} = ?`; e=`${x} × ${y} = <b>${a}</b>.`; }
+  else if(t==='div'){ const y=ri(2,d<3?9:12), a2=ri(2,d<3?9:12); const x=y*a2; a=a2; q=`${x} ÷ ${y} = ?`; e=`${x} ÷ ${y} = <b>${a}</b> because ${y} × ${a} = ${x}.`; }
+  else if(t==='addsub'){ const big=d<2?100:1000; let x=ri(10,big),y=ri(10,big); if(Math.random()<.5){a=x+y;q=`${x} + ${y} = ?`;e=`${x} + ${y} = <b>${a}</b>.`;} else{ if(y>x)[x,y]=[y,x]; a=x-y; q=`${x} − ${y} = ?`; e=`${x} − ${y} = <b>${a}</b>.`; } }
+  else if(t==='percent'){ const p=rand([10,20,25,50,75, d>2?15:5]); const base=ri(1,d>2?12:8)*20; a=p/100*base; q=`${p}% of ${base} = ?`; e=`${p}% of ${base} = ${p}/100 × ${base} = <b>${a}</b>.`; }
+  else if(t==='fracOf'){ const den=rand([2,3,4,5,d>2?6:4]); const mult=ri(1,den-1); const whole=den*ri(2,d>2?9:6); a=whole/den*mult; q=`${mult}/${den} of ${whole} = ?`; e=`${whole} ÷ ${den} = ${whole/den}, then × ${mult} = <b>${a}</b>.`; }
+  else if(t==='square'){ if(Math.random()<.6){ const n=ri(d>3?6:2,d>3?15:12); a=n*n; q=`${n}² = ?`; e=`${n}² = ${n} × ${n} = <b>${a}</b>.`; } else { const n=ri(2,12); const sq=n*n; a=n; q=`√${sq} = ?`; e=`√${sq} = <b>${n}</b> because ${n}² = ${sq}.`; } }
+  else if(t==='exponent'){ const base=ri(2,4); const exp=ri(2,d>3?4:3); a=Math.pow(base,exp); q=`${base}${sup(exp)} = ?`; e=`${base}${sup(exp)} = <b>${a}</b>.`; }
+  else if(t==='order'){ const b=ri(2,9),c=ri(2,9),aa=ri(2,20); if(Math.random()<.5){ a=aa + b*c; q=`${aa} + ${b} × ${c} = ?`; e=`Do × first: ${b}×${c}=${b*c}, then ${aa}+${b*c} = <b>${a}</b>.`; } else { const par=aa+b; a=par*c; q=`(${aa} + ${b}) × ${c} = ?`; e=`Brackets first: ${aa}+${b}=${par}, then ×${c} = <b>${a}</b>.`; } }
+  else if(t==='algebra'){ const coef=ri(2,d>3?9:6); const x=ri(2,d>3?12:9); const bTerm=ri(1,20); const c=coef*x+bTerm; a=x; q=`If ${coef}x + ${bTerm} = ${c}, then x = ?`; e=`${c} − ${bTerm} = ${c-bTerm}; ${c-bTerm} ÷ ${coef} = <b>${x}</b>.`; }
+  const spread = a>50?Math.max(3,Math.round(a*0.15)):Math.max(2,Math.round(a*0.4))||3;
+  return {q, o:numOptions(a, spread), a:String(a), e, tag:'Math'};
+}
+function sup(n){ return String(n).replace(/[0-9]/g,c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]); }
+
+function seqQuestion(d){
+  const types = d<3 ? ['arith','skip','square'] : ['arith','geo','square','fib','triangular'];
+  const t=rand(types); let seq=[], a, e;
+  if(t==='arith'){ const start=ri(1,15), step=ri(2,d>2?12:6); for(let i=0;i<5;i++)seq.push(start+step*i); a=start+step*5; e=`Add ${step} each time → <b>${a}</b>.`; }
+  else if(t==='skip'){ const start=ri(1,9); let step=ri(1,4); let cur=start; for(let i=0;i<5;i++){seq.push(cur);cur+=step;step++;} a=cur; e=`The gap grows by one each step → <b>${a}</b>.`; }
+  else if(t==='geo'){ const start=rand([1,2,3]), r=rand([2,3]); for(let i=0;i<5;i++)seq.push(start*Math.pow(r,i)); a=start*Math.pow(r,5); e=`Multiply by ${r} each time → <b>${a}</b>.`; }
+  else if(t==='square'){ const s=ri(1,3); for(let i=0;i<5;i++)seq.push(Math.pow(s+i,2)); a=Math.pow(s+5,2); e=`These are square numbers (${seq.map((_,i)=>`${s+i}²`).join(', ')}…) → ${s+5}² = <b>${a}</b>.`; }
+  else if(t==='fib'){ let x=ri(1,4),y=ri(2,6); seq=[x,y]; for(let i=0;i<3;i++){seq.push(x+y);[x,y]=[y,x+y];} a=x+y; e=`Each term is the sum of the two before it → ${x}+${y} = <b>${a}</b>.`; }
+  else if(t==='triangular'){ let cur=0,add=1; for(let i=0;i<5;i++){cur+=add;seq.push(cur);add++;} a=cur+add; e=`Triangular numbers: add 1,2,3,4… → <b>${a}</b>.`; }
+  return {q:`What comes next?<br><span style="font-size:1.5rem;letter-spacing:2px;color:var(--cyan)">${seq.join('  ,  ')} ,  ?</span>`, o:numOptions(a, Math.max(3,Math.round(a*0.2))), a:String(a), e, tag:'Sequence'};
+}
+function logicQuestion(d){
+  if(Math.random()<0.5){ const q=pickFromBank(ANALOGIES,d); return {...q, tag:'Analogy'}; }
+  return seqQuestion(d);
+}
+
+/* pick curated questions matching difficulty (fallback: nearest) */
+function pickFromBank(bank,d){
+  let pool=bank.filter(x=>x.d===d);
+  if(pool.length<1) pool=bank.filter(x=>Math.abs(x.d-d)<=1);
+  if(pool.length<1) pool=bank;
+  return rand(pool);
+}
+function buildQuiz(cat,d){
+  const qs=[];
+  if(cat==='math'){ for(let i=0;i<QUIZ_LEN;i++) qs.push(mathQuestion(d)); }
+  else if(cat==='logic'){ for(let i=0;i<QUIZ_LEN;i++) qs.push(logicQuestion(d)); }
+  else {
+    const bank = cat==='vocab'?VOCAB : cat==='science'?SCIENCE : GEO;
+    const used=new Set();
+    let pool=bank.filter(x=>x.d===d);
+    if(pool.length<QUIZ_LEN) pool=bank.filter(x=>Math.abs(x.d-d)<=1);
+    if(pool.length<QUIZ_LEN) pool=bank.slice();
+    pool=shuffle(pool);
+    for(let i=0;i<QUIZ_LEN;i++){ const item=pool[i%pool.length]; qs.push({...item, tag:CATS[cat].name}); }
+  }
+  return qs;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+let stack=[];
+function navTo(fn){ stack.push(fn); render(); }
+function render(){ backBtn.classList.toggle('show', stack.length>1); stack[stack.length-1](); }
+backBtn.onclick=()=>{ sTap(); if(stack.length>1){ stack.pop(); render(); } };
+function goHome(){ stack=[home]; render(); }
+
+/* ---------- HOME ---------- */
+function home(){
+  const lvl=levelFromXP(D.xp), cur=xpForLevel(lvl), nxt=xpForLevel(lvl+1);
+  const pct=Math.min(100,Math.round((D.xp-cur)/(nxt-cur)*100));
+  view.innerHTML=`
+    <div class="hero">
+      <h1>Hi Mila — <span class="g">ready to level up?</span></h1>
+      <p>${levelTitle(lvl)} · Level ${lvl}${D.dayStreak>1?` · 🔥 ${D.dayStreak}-day streak`:''}</p>
+      <div class="levelbar">
+        <div class="row"><span>Level ${lvl}</span><span>${D.xp-cur} / ${nxt-cur} XP</span></div>
+        <div class="track"><span style="width:${pct}%"></span></div>
+      </div>
+    </div>
+    <div class="cats">
+      ${Object.keys(CATS).map(k=>`
+        <button class="cat" data-c="${k}">
+          <div class="glow" style="background:${CATS[k].color}"></div>
+          <div class="ic">${CATS[k].icon}</div>
+          <div class="nm">${CATS[k].name}</div>
+          <div class="ds">${CATS[k].ds}</div>
+        </button>`).join('')}
+      <button class="cat full" data-c="daily" style="border-color:rgba(139,123,255,.4)">
+        <div class="ic">🎯</div>
+        <div class="txt"><div class="nm">Daily Mix</div><div class="ds">10 questions from every subject</div></div>
+      </button>
+      <button class="cat full stats" data-c="dash">
+        <div class="ic">📊</div>
+        <div class="txt"><div class="nm">My Progress</div><div class="ds">Stats, high scores & tips</div></div>
+      </button>
+    </div>
+    <div class="settings-row">
+      <button class="toggle ${D.sound?'on':''}" id="tSound"><span class="dot"></span>Sound</button>
+      <button class="toggle ${D.timer?'on':''}" id="tTimer"><span class="dot"></span>Timer</button>
+    </div>`;
+  view.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{ sTap(); const c=b.dataset.c;
+    if(c==='dash') navTo(dashboard); else if(c==='daily') navTo(()=>quiz('daily',2)); else navTo(()=>diffSelect(c)); });
+  view.querySelector('#tSound').onclick=()=>{ D.sound=!D.sound; save(); if(D.sound) sTap(); render(); };
+  view.querySelector('#tTimer').onclick=()=>{ D.timer=!D.timer; save(); sTap(); render(); };
+}
+
+/* ---------- DIFFICULTY ---------- */
+function diffSelect(cat){
+  view.innerHTML=`
+    <div class="hero"><h1>${CATS[cat].icon} ${CATS[cat].name}</h1><p>${CATS[cat].ds}</p></div>
+    <div class="diff-list">
+      ${DIFFS.map(df=>`
+        <button class="diff" data-d="${df.k}">
+          <span class="b">${df.b}</span>
+          <span><span class="t">${df.name}</span><br><span class="s">${df.s}</span></span>
+          <span class="hi">best<b>${D.cats[cat].high}</b></span>
+        </button>`).join('')}
+    </div>`;
+  view.querySelectorAll('.diff').forEach(b=>b.onclick=()=>{ sTap(); navTo(()=>quiz(cat, +b.dataset.d)); });
+}
+
+/* ============================================================
+   QUIZ ENGINE
+   ============================================================ */
+function quiz(cat, d){
+  const isDaily = cat==='daily';
+  const questions = isDaily ? buildDaily(d) : buildQuiz(cat,d);
+  let idx=0, score=0, correct=0, streak=0, bestStreak=0;
+  const totalTime = DIFFS.find(x=>x.k===d).time;
+  const diffMult = [1,1,1.25,1.5,2][d];
+  let timerId=null, timeLeft=0, answered=false;
+
+  function showQ(){
+    answered=false;
+    const Q=questions[idx];
+    view.innerHTML=`
+      <div class="quiz-top">
+        <span class="qcount">${idx+1}/${QUIZ_LEN}</span>
+        <div class="timer"><span id="tbar"></span></div>
+        <span class="scorepill" id="scp">${score}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span class="streak">${streak>1?'🔥 '+streak+' streak':''}</span>
+        <span style="font-size:.75rem;color:var(--muted)">${isDaily?'Daily Mix':CATS[cat]?CATS[cat].name:''} · ${DIFFS.find(x=>x.k===d).name}</span>
+      </div>
+      <div class="qcard">
+        <span class="qtag">${Q.tag||''}</span>
+        <div class="qtext">${Q.q}</div>
+        <div class="answers"></div>
+        <div class="explain" id="exp"></div>
+        <button class="next" id="nextBtn">Next →</button>
+      </div>`;
+    const ansBox=view.querySelector('.answers');
+    shuffle(Q.o).forEach(opt=>{
+      const b=document.createElement('button'); b.className='ans'; b.innerHTML=opt;
+      b.onclick=()=>choose(b, opt, Q);
+      ansBox.appendChild(b);
+    });
+    // timer
+    const tbar=view.querySelector('#tbar');
+    if(D.timer){
+      timeLeft=totalTime; tbar.style.transition='none'; tbar.style.width='100%';
+      requestAnimationFrame(()=>{ tbar.style.transition=`width ${totalTime}s linear`; tbar.style.width='0%'; });
+      clearInterval(timerId);
+      const started=performance.now();
+      timerId=setInterval(()=>{ const el=(performance.now()-started)/1000; timeLeft=Math.max(0,totalTime-el);
+        if(timeLeft<=0){ clearInterval(timerId); if(!answered) timeUp(Q); } }, 100);
+    } else { tbar.parentElement.style.display='none'; }
+  }
+
+  function choose(btn, opt, Q){
+    if(answered) return; answered=true; clearInterval(timerId);
+    const ok = opt===Q.a || stripTags(opt)===stripTags(Q.a);
+    const allBtns=view.querySelectorAll('.ans');
+    allBtns.forEach(b=>{ b.classList.add('disabled');
+      if(stripTags(b.innerHTML)===stripTags(Q.a)) b.classList.add('correct'); });
+    if(ok){
+      btn.classList.add('correct'); sGood();
+      correct++; streak++; bestStreak=Math.max(bestStreak,streak);
+      const speedFrac = D.timer? timeLeft/totalTime : 0.5;
+      const pts = Math.round((100 + Math.round(50*speedFrac) + Math.min(streak,8)*10) * diffMult);
+      score+=pts;
+      view.querySelector('#scp').textContent=score;
+      showExplain(Q, `+${pts} points`);
+    } else {
+      btn.classList.add('wrong'); sBad(); streak=0;
+      showExplain(Q, '');
+    }
+  }
+  function timeUp(Q){
+    answered=true; streak=0; sBad();
+    view.querySelectorAll('.ans').forEach(b=>{ b.classList.add('disabled');
+      if(stripTags(b.innerHTML)===stripTags(Q.a)) b.classList.add('correct'); });
+    showExplain(Q, '⏱ Time!');
+  }
+  function showExplain(Q, badge){
+    const exp=view.querySelector('#exp');
+    exp.innerHTML=(badge?`<b>${badge}</b> — `:'')+Q.e;
+    exp.classList.add('show');
+    const nb=view.querySelector('#nextBtn'); nb.classList.add('show');
+    nb.textContent = idx+1>=QUIZ_LEN ? 'See results →' : 'Next →';
+    nb.onclick=()=>{ sTap(); idx++; if(idx>=QUIZ_LEN) finish(); else showQ(); };
+  }
+  function finish(){
+    clearInterval(timerId);
+    const catKey = isDaily?'daily':cat;
+    let leveledFrom=levelFromXP(D.xp);
+    D.xp+=score; save(); refreshXP();
+    let leveledTo=levelFromXP(D.xp);
+    // stats (skip 'daily' pseudo-cat for per-subject, but still record high under each? keep a daily entry lightly)
+    if(!isDaily){
+      const s=D.cats[cat]; s.plays++; s.total+=QUIZ_LEN; s.correct+=correct;
+      s.bestStreak=Math.max(s.bestStreak,bestStreak);
+    }
+    let newHigh=false;
+    if(!isDaily && score>D.cats[cat].high){ D.cats[cat].high=score; newHigh=true; }
+    save();
+    results(catKey, cat, d, score, correct, bestStreak, newHigh, leveledTo>leveledFrom?leveledTo:0);
+  }
+  showQ();
+}
+function stripTags(s){ return String(s).replace(/<[^>]*>/g,'').trim(); }
+
+function buildDaily(d){
+  const cats=shuffle(['vocab','math','logic','science','geo']);
+  const qs=[];
+  // 2 from each subject
+  cats.forEach(c=>{ const two=buildQuiz(c, d).slice(0,2); qs.push(...two); });
+  return shuffle(qs).slice(0,QUIZ_LEN);
+}
+
+/* ---------- RESULTS ---------- */
+function results(catKey, cat, d, score, correct, bestStreak, newHigh, leveledTo){
+  const pct=Math.round(correct/QUIZ_LEN*100);
+  const emoji = pct===100?'🏆':pct>=80?'🌟':pct>=60?'👍':pct>=40?'💪':'📚';
+  const grade = pct===100?'Perfect score!':pct>=80?'Excellent work!':pct>=60?'Nicely done!':pct>=40?'Keep pushing!':'Practice makes progress!';
+  view.innerHTML=`
+    <div class="result">
+      <div class="emoji">${emoji}</div>
+      <h2>${score.toLocaleString()} points</h2>
+      <div class="grade">${grade}</div>
+      <div class="newhi ${newHigh?'show':''}">🎉 New high score!</div>
+      <div class="rstats">
+        <div class="rbox acc"><div class="n">${pct}%</div><div class="c">Accuracy</div></div>
+        <div class="rbox xp"><div class="n">+${score.toLocaleString()}</div><div class="c">XP earned</div></div>
+        <div class="rbox st"><div class="n">${bestStreak}</div><div class="c">Best streak</div></div>
+      </div>
+      <div class="lvlup ${leveledTo?'show':''}">⬆️ <b>Level ${leveledTo}!</b> You’re now a ${leveledTo?levelTitle(leveledTo):''}.</div>
+      <div class="btn-row">
+        <button class="btn primary" id="again">Play again</button>
+        <button class="btn ghost" id="homeB">Home</button>
+      </div>
+    </div>`;
+  sWin();
+  view.querySelector('#again').onclick=()=>{ sTap(); stack.pop();
+    navTo(()=> catKey==='daily'?quiz('daily',d):quiz(cat,d)); };
+  view.querySelector('#homeB').onclick=()=>{ sTap(); goHome(); };
+}
+
+/* ---------- DASHBOARD ---------- */
+function dashboard(){
+  const lvl=levelFromXP(D.xp);
+  const totT=Object.values(D.cats).reduce((a,s)=>a+s.total,0);
+  const totC=Object.values(D.cats).reduce((a,s)=>a+s.correct,0);
+  const overall=totT?Math.round(totC/totT*100):0;
+  const plays=Object.values(D.cats).reduce((a,s)=>a+s.plays,0);
+  view.innerHTML=`
+    <div class="dash">
+      <h2>Mila’s Progress</h2>
+      <div class="sub">${levelTitle(lvl)} · Level ${lvl}</div>
+      <div class="dstats">
+        <div class="rbox xp"><div class="n">${D.xp.toLocaleString()}</div><div class="c">Total XP</div></div>
+        <div class="rbox acc"><div class="n">${overall}%</div><div class="c">Accuracy</div></div>
+        <div class="rbox st"><div class="n">🔥${D.dayStreak}</div><div class="c">Day streak</div></div>
+      </div>
+      <div class="dstats" style="grid-template-columns:repeat(2,1fr)">
+        <div class="rbox"><div class="n">${plays}</div><div class="c">Quizzes played</div></div>
+        <div class="rbox"><div class="n">${totT}</div><div class="c">Questions answered</div></div>
+      </div>
+      <div id="skills"></div>
+      <div class="recs"><h3>💡 Coach’s tips</h3><ul>${buildRecs().map(r=>`<li>${r}</li>`).join('')}</ul></div>
+      <button class="reset" id="reset">Reset all progress</button>
+    </div>`;
+  const box=view.querySelector('#skills');
+  Object.keys(CATS).forEach(k=>{
+    const s=D.cats[k]; const acc=s.total?Math.round(s.correct/s.total*100):0;
+    const mastery=s.total?Math.min(100,acc):0;
+    box.innerHTML+=`
+      <div class="skill">
+        <div class="top"><div class="nm">${CATS[k].icon} ${CATS[k].name}</div><div class="hi">${s.high?('best '+s.high):'—'}</div></div>
+        <div class="track"><span style="width:${mastery}%;background:${CATS[k].color}"></span></div>
+        <div class="meta">${s.total?`${acc}% correct · ${s.plays} quiz${s.plays!==1?'zes':''} · best streak ${s.bestStreak}`:'Not tried yet'}</div>
+      </div>`;
+  });
+  view.querySelector('#reset').onclick=()=>{ if(confirm('Reset all XP, levels and scores? This cannot be undone.')){ D=structuredClone(DEFAULT); save(); refreshXP(); render(); } };
+}
+function buildRecs(){
+  const recs=[];
+  const played=Object.entries(D.cats).filter(([k,s])=>s.total>0);
+  if(!played.length){
+    return ['Start with a <b>Daily Mix</b> to see which subjects you love most.',
+      'Turn the <b>Timer</b> on for a speed bonus once a topic feels easy.',
+      'Aim for one quiz a day — you’ll build a streak and climb the levels fast.'];
+  }
+  played.sort((a,b)=>(a[1].correct/a[1].total)-(b[1].correct/b[1].total));
+  const [wk,ws]=played[0], wa=Math.round(ws.correct/ws.total*100);
+  const [st,ss]=played[played.length-1], sa=Math.round(ss.correct/ss.total*100);
+  if(wa<70) recs.push(`Your biggest growth area is <b>${CATS[wk].name}</b> (${wa}%). Play it a few more times at Medium to lock it in.`);
+  if(sa>=85) recs.push(`You’re crushing <b>${CATS[st].name}</b> (${sa}%)! Bump it up to <b>Hard</b> or <b>Expert</b> for more XP.`);
+  const untried=Object.keys(CATS).filter(k=>D.cats[k].total===0);
+  if(untried.length) recs.push(`You haven’t tried <b>${untried.map(k=>CATS[k].name).join(' & ')}</b> yet — new subjects mean easy XP.`);
+  if(D.dayStreak>=3) recs.push(`🔥 ${D.dayStreak}-day streak — keep it alive with one quick quiz today!`);
+  else recs.push('Play a little every day to build a streak and reach the next level.');
+  recs.push('Read the explanation after each question — that’s where the real learning happens.');
+  return recs.slice(0,5);
+}
+
+/* ---------- start ---------- */
+goHome();
+document.body.addEventListener('touchstart',()=>{ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} },{once:true});
+</script>
+</body>
+</html>
