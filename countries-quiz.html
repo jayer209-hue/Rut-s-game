@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e1620">
+<title>Populous 25 · Atlas Trainer</title>
+<style>
+  :root {
+    --ground: #0e1620;
+    --ground2: #0b1119;
+    --surface: #17232f;
+    --surface2: #1e2e3c;
+    --line: #2b3d4c;
+    --ink: #e8eef2;
+    --muted: #90a5b2;
+    --faint: #61798a;
+    --ocean: #35b0a7;
+    --ocean-dim: #2a8a83;
+    --gold: #e0b352;
+    --good: #5fc98a;
+    --bad: #e8746b;
+    --shadow: rgba(0,0,0,.35);
+    --serif: "Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;
+    --sans: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #ece4d3;
+      --ground2: #e3d9c4;
+      --surface: #fbf7ee;
+      --surface2: #f4eddd;
+      --line: #d9cdb4;
+      --ink: #1c2b33;
+      --muted: #5c6b6a;
+      --faint: #8b9490;
+      --ocean: #1c8a83;
+      --ocean-dim: #14746e;
+      --gold: #b9832a;
+      --good: #2f9c62;
+      --bad: #c9503f;
+      --shadow: rgba(60,50,30,.14);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0e1620; --ground2: #0b1119; --surface: #17232f; --surface2: #1e2e3c;
+    --line: #2b3d4c; --ink: #e8eef2; --muted: #90a5b2; --faint: #61798a;
+    --ocean: #35b0a7; --ocean-dim: #2a8a83; --gold: #e0b352; --good: #5fc98a; --bad: #e8746b;
+    --shadow: rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    --ground: #ece4d3; --ground2: #e3d9c4; --surface: #fbf7ee; --surface2: #f4eddd;
+    --line: #d9cdb4; --ink: #1c2b33; --muted: #5c6b6a; --faint: #8b9490;
+    --ocean: #1c8a83; --ocean-dim: #14746e; --gold: #b9832a; --good: #2f9c62; --bad: #c9503f;
+    --shadow: rgba(60,50,30,.14);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--ocean) 10%, transparent) 0%, transparent 55%),
+      linear-gradient(180deg, var(--ground) 0%, var(--ground2) 100%);
+    background-attachment: fixed;
+    -webkit-text-size-adjust: 100%;
+    line-height: 1.5;
+  }
+  /* faint graticule / map-grid backdrop */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
+            mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
+    opacity: .5;
+  }
+
+  #app { position: relative; z-index: 1; max-width: 540px; margin: 0 auto;
+    padding: calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 28px);
+    display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ---- masthead ---- */
+  .mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .eyebrow { font-size: .68rem; letter-spacing: .28em; text-transform: uppercase; color: var(--ocean); font-weight: 700; }
+  .title { font-family: var(--serif); font-size: 2.05rem; line-height: 1; margin: 4px 0 0; font-weight: 700;
+    letter-spacing: -.01em; text-wrap: balance; }
+  .title .n { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .theme-btn { flex: none; background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+    width: 42px; height: 42px; border-radius: 12px; font-size: 1.15rem; cursor: pointer; display: grid; place-items: center;
+    transition: transform .12s, color .2s; }
+  .theme-btn:active { transform: scale(.9); }
+
+  /* ---- overall mastery bar ---- */
+  .mastery { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px; box-shadow: 0 2px 10px var(--shadow); }
+  .mastery .lbl { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .mbar { flex: 1; height: 9px; border-radius: 6px; background: var(--surface2); overflow: hidden; position: relative; }
+  .mbar > i { display: block; height: 100%; width: 0%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--ocean), var(--gold)); transition: width .5s cubic-bezier(.2,.7,.3,1); }
+  .mpct { font-family: var(--serif); font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink); min-width: 46px; text-align: right; }
+
+  /* ---- tabs ---- */
+  .tabs { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px; padding: 5px; margin-bottom: 18px; }
+  .tab { border: none; background: transparent; color: var(--muted); font-family: var(--sans); font-weight: 700;
+    font-size: .92rem; padding: 10px 4px; border-radius: 10px; cursor: pointer; transition: background .2s, color .2s;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tab .ti { font-size: 1.1rem; }
+  .tab.active { background: var(--ocean); color: #06110f; box-shadow: 0 2px 8px color-mix(in srgb, var(--ocean) 40%, transparent); }
+
+  .view { flex: 1; }
+  .hidden { display: none !important; }
+
+  /* ---------- LEARN ---------- */
+  .learn-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .chunk-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chunk { border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .8rem; font-weight: 700;
+    padding: 6px 11px; border-radius: 999px; cursor: pointer; font-family: var(--sans); }
+  .chunk.active { background: var(--gold); color: #2a1e06; border-color: transparent; }
+
+  .card-deck { position: relative; }
+  .flash { background: linear-gradient(165deg, var(--surface) 0%, var(--surface2) 100%);
+    border: 1px solid var(--line); border-radius: 22px; padding: 26px 22px 22px; box-shadow: 0 10px 30px var(--shadow);
+    text-align: center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .flash .rank { font-family: var(--serif); font-size: 3.4rem; line-height: 1; color: var(--gold);
+    font-variant-numeric: tabular-nums; font-weight: 700; }
+  .flash .rank small { font-size: 1rem; color: var(--faint); font-family: var(--sans); font-weight: 700; letter-spacing: .1em; }
+  .flash .flag { font-size: 4.6rem; line-height: 1; margin: 6px 0 2px; filter: drop-shadow(0 4px 8px var(--shadow)); }
+  .flash .cname { font-family: var(--serif); font-size: 2rem; font-weight: 700; margin: 4px 0 2px; text-wrap: balance; }
+  .flash .pop { font-size: 1.15rem; color: var(--ocean); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .flash .pop small { color: var(--faint); font-weight: 600; }
+  .flash .hook { margin-top: 14px; font-size: .95rem; color: var(--muted); font-style: italic; max-width: 30ch;
+    border-top: 1px dashed var(--line); padding-top: 12px; }
+  .flash .hook.empty { border: none; padding: 0; }
+
+  .deck-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 10px; }
+  .nav-btn { flex: 1; background: var(--surface); border: 1px solid var(--line); color: var(--ink); font-family: var(--sans);
+    font-weight: 700; font-size: 1rem; padding: 14px; border-radius: 14px; cursor: pointer; transition: transform .1s, background .2s; }
+  .nav-btn:active { transform: scale(.96); }
+  .nav-btn:disabled { opacity: .38; cursor: default; }
+  .nav-btn.primary { background: var(--ocean); color: #06110f; border-color: transparent; flex: 1.4; }
+  .deck-count { font-variant-numeric: tabular-nums; color: var(--faint); font-size: .9rem; min-width: 52px; text-align: center; }
+
+  .mnemonic { margin-top: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .mnemonic summary { cursor: pointer; padding: 14px 16px; font-weight: 700; color: var(--ink); list-style: none;
+    display: flex; align-items: center; gap: 8px; }
+  .mnemonic summary::-webkit-details-marker { display: none; }
+  .mnemonic summary .chev { margin-left: auto; color: var(--faint); transition: transform .2s; }
+  .mnemonic[open] summary .chev { transform: rotate(90deg); }
+  .mnemonic .body { padding: 0 16px 16px; color: var(--muted); font-size: .95rem; }
+  .mnemonic .body p { margin: 0 0 10px; }
+  .mnemonic .body b { color: var(--ink); }
+  .mnemonic .body .em { color: var(--ocean); font-weight: 700; }
+
+  /* ---------- QUIZ ---------- */
+  .quiz-meta { display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; text-align: center; }
+  .stat .v { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat .k { font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-top: 4px; }
+  .stat.streak .v { color: var(--gold); }
+
+  .qcard { background: linear-gradient(165deg, var(--surface) 0%, var(--surface2) 100%); border: 1px solid var(--line);
+    border-radius: 20px; padding: 22px 20px; box-shadow: 0 8px 26px var(--shadow); }
+  .qkind { font-size: .66rem; letter-spacing: .22em; text-transform: uppercase; color: var(--ocean); font-weight: 700; text-align: center; }
+  .qtext { font-family: var(--serif); font-size: 1.55rem; text-align: center; margin: 10px 0 6px; text-wrap: balance; line-height: 1.2; }
+  .qtext .big { display: block; font-size: 2.3rem; color: var(--gold); }
+  .qflag { text-align: center; font-size: 3.4rem; line-height: 1; margin: 2px 0 10px; }
+  .options { display: grid; gap: 10px; margin-top: 14px; }
+  .options.two { grid-template-columns: 1fr 1fr; }
+  .opt { background: var(--surface2); border: 2px solid var(--line); border-radius: 14px; padding: 15px 12px; cursor: pointer;
+    color: var(--ink); font-family: var(--sans); font-weight: 600; font-size: 1.05rem; text-align: center;
+    transition: transform .08s, border-color .2s, background .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 56px; }
+  .opt .oflag { font-size: 1.4rem; }
+  .opt:active { transform: scale(.97); }
+  .opt.correct { background: color-mix(in srgb, var(--good) 26%, var(--surface2)); border-color: var(--good); }
+  .opt.wrong { background: color-mix(in srgb, var(--bad) 24%, var(--surface2)); border-color: var(--bad); }
+  .opt.dim { opacity: .45; }
+  .opt:disabled { cursor: default; }
+
+  .feedback { text-align: center; margin-top: 14px; min-height: 26px; font-weight: 700; font-size: 1rem; }
+  .feedback.ok { color: var(--good); }
+  .feedback.no { color: var(--bad); }
+  .next-btn { width: 100%; margin-top: 12px; background: var(--ocean); border: none; color: #06110f; font-family: var(--sans);
+    font-weight: 700; font-size: 1.05rem; padding: 15px; border-radius: 14px; cursor: pointer; transition: transform .1s; }
+  .next-btn:active { transform: scale(.97); }
+
+  .queue-note { text-align: center; color: var(--faint); font-size: .82rem; margin-top: 14px; }
+
+  /* ---------- RECALL ---------- */
+  .recall-intro { color: var(--muted); font-size: .95rem; margin-bottom: 14px; text-align: center; }
+  .slots { display: flex; flex-direction: column; gap: 6px; }
+  .slot { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 9px 12px; min-height: 48px; }
+  .slot .sr { font-family: var(--serif); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums;
+    min-width: 26px; text-align: center; }
+  .slot .sc { flex: 1; font-weight: 600; }
+  .slot.empty .sc { color: var(--faint); font-weight: 500; font-style: italic; }
+  .slot.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, var(--surface)); }
+  .slot.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, var(--surface)); }
+  .slot .truth { font-size: .82rem; color: var(--bad); font-weight: 700; }
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip { background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer;
+    font-weight: 600; font-size: .92rem; color: var(--ink); font-family: var(--sans); display: inline-flex; align-items: center; gap: 6px;
+    transition: transform .08s; }
+  .chip:active { transform: scale(.94); }
+  .chip.used { display: none; }
+  .recall-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .recall-actions button { flex: 1; padding: 14px; border-radius: 14px; font-family: var(--sans); font-weight: 700; font-size: 1rem;
+    cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+  .recall-actions .check { background: var(--ocean); color: #06110f; border-color: transparent; }
+  .recall-score { text-align: center; font-family: var(--serif); font-size: 1.3rem; margin-top: 16px; }
+  .recall-score.hidden { display: none; }
+
+  .footer-note { text-align: center; color: var(--faint); font-size: .78rem; margin-top: 22px; line-height: 1.6; }
+  .footer-note a { color: var(--ocean); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="mast">
+    <div>
+      <div class="eyebrow">World Population · 2025</div>
+      <h1 class="title">The Populous <span class="n">25</span></h1>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+  </header>
+
+  <div class="mastery">
+    <span class="lbl">Mastery</span>
+    <div class="mbar"><i id="masteryFill"></i></div>
+    <span class="mpct" id="masteryPct">0%</span>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="learn"><span class="ti">📖</span>Learn</button>
+    <button class="tab" data-view="quiz"><span class="ti">⚡</span>Quiz</button>
+    <button class="tab" data-view="recall"><span class="ti">🧠</span>Recall</button>
+  </nav>
+
+  <!-- LEARN -->
+  <section class="view" id="view-learn">
+    <div class="learn-head">
+      <div class="chunk-tabs" id="chunkTabs"></div>
+    </div>
+    <div class="card-deck">
+      <div class="flash" id="flash"></div>
+      <div class="deck-nav">
+        <button class="nav-btn" id="prevBtn">‹ Prev</button>
+        <span class="deck-count" id="deckCount">1 / 5</span>
+        <button class="nav-btn primary" id="nextBtn">Next ›</button>
+      </div>
+    </div>
+
+    <details class="mnemonic">
+      <summary>🗺️ Memory route — chain all 25 into one story<span class="chev">›</span></summary>
+      <div class="body" id="mnemonicBody"></div>
+    </details>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="view hidden" id="view-quiz">
+    <div class="quiz-meta">
+      <div class="stat"><div class="v" id="qCorrect">0</div><div class="k">Correct</div></div>
+      <div class="stat streak"><div class="v" id="qStreak">0</div><div class="k">Streak</div></div>
+      <div class="stat"><div class="v" id="qSeen">0</div><div class="k">Answered</div></div>
+    </div>
+    <div class="qcard" id="qcard"></div>
+    <div class="queue-note" id="queueNote"></div>
+  </section>
+
+  <!-- RECALL -->
+  <section class="view hidden" id="view-recall">
+    <p class="recall-intro">Place all 25 in order, most populous first. Tap a country to drop it in the next open slot.</p>
+    <div class="slots" id="slots"></div>
+    <div class="pool" id="pool"></div>
+    <div class="recall-actions">
+      <button id="recallReset">Reset</button>
+      <button class="check" id="recallCheck">Check order</button>
+    </div>
+    <div class="recall-score hidden" id="recallScore"></div>
+  </section>
+
+  <p class="footer-note">
+    Figures are 2025 estimates (millions), rounded for recall. Ranks 21–25 sit within a few million of each other and can shift between sources.<br>
+    Your progress is saved on this device.
+  </p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- data ---------------- */
+  var COUNTRIES = [
+    { r:1,  name:"India",          flag:"🇮🇳", pop:1457, hook:"Passed China in 2023 — now #1 on Earth." },
+    { r:2,  name:"China",          flag:"🇨🇳", pop:1418, hook:"Was #1 for centuries; population now slowly falling." },
+    { r:3,  name:"United States",  flag:"🇺🇸", pop:347,  hook:"The only non-Asian country in the top 5." },
+    { r:4,  name:"Indonesia",      flag:"🇮🇩", pop:285,  hook:"Most populous Muslim-majority nation; 17,000 islands." },
+    { r:5,  name:"Pakistan",       flag:"🇵🇰", pop:274,  hook:"Rounds out the top 5 — all four biggest below India are in Asia." },
+    { r:6,  name:"Nigeria",        flag:"🇳🇬", pop:235,  hook:"#1 in Africa — the giant of the continent." },
+    { r:7,  name:"Brazil",         flag:"🇧🇷", pop:212,  hook:"#1 in South America; lucky number 7." },
+    { r:8,  name:"Bangladesh",     flag:"🇧🇩", pop:175,  hook:"Tiny land area, enormous population — very dense." },
+    { r:9,  name:"Russia",         flag:"🇷🇺", pop:144,  hook:"Largest country by land — yet only 9th by people." },
+    { r:10, name:"Ethiopia",       flag:"🇪🇹", pop:134,  hook:"#2 in Africa; rounds out the top 10." },
+    { r:11, name:"Mexico",         flag:"🇲🇽", pop:131,  hook:"Just behind Ethiopia — a near tie around 130M." },
+    { r:12, name:"Japan",          flag:"🇯🇵", pop:123,  hook:"Shrinking and aging — sliding down the list each year." },
+    { r:13, name:"Philippines",    flag:"🇵🇭", pop:118,  hook:"Leads a tight Southeast-Asian cluster." },
+    { r:14, name:"DR Congo",       flag:"🇨🇩", pop:116,  hook:"Fast-growing #3 in Africa; heart of the continent." },
+    { r:15, name:"Vietnam",        flag:"🇻🇳", pop:111,  hook:"The midpoint of the whole list — halfway marker." },
+    { r:16, name:"Egypt",          flag:"🇪🇬", pop:101,  hook:"The ~100M gate — everything above is nine figures." },
+    { r:17, name:"Iran",           flag:"🇮🇷", pop:92,   hook:"First country under 100M." },
+    { r:18, name:"Turkey",         flag:"🇹🇷", pop:88,   hook:"Bridges Europe and Asia — just above Germany." },
+    { r:19, name:"Germany",        flag:"🇩🇪", pop:84,   hook:"#1 in the European Union." },
+    { r:20, name:"Thailand",       flag:"🇹🇭", pop:72,   hook:"Closes the top 20." },
+    { r:21, name:"Tanzania",       flag:"🇹🇿", pop:70,   hook:"Rising fast — the last African country in the 25." },
+    { r:22, name:"United Kingdom", flag:"🇬🇧", pop:69,   hook:"Neck-and-neck with Tanzania around 70M." },
+    { r:23, name:"France",         flag:"🇫🇷", pop:67,   hook:"Just behind the UK — a classic European pair." },
+    { r:24, name:"South Africa",   flag:"🇿🇦", pop:64,   hook:"Southern tip of the continent." },
+    { r:25, name:"Italy",          flag:"🇮🇹", pop:59,   hook:"The boot brings up the rear at #25." }
+  ];
+
+  var MNEMONIC = [
+    "Read it as a journey down a crowded map. Picture each scene vividly and in order:",
+    "<b>1–5:</b> <span class='em'>India</span> is so packed it elbows <span class='em'>China</span> off the top step, so both sail to the <span class='em'>United States</span>, board a ferry to <span class='em'>Indonesia's</span> islands, then cross into <span class='em'>Pakistan</span>. (All five are in Asia except the USA.)",
+    "<b>6–10:</b> From Pakistan you fly to Africa's giant <span class='em'>Nigeria</span>, hop the ocean to <span class='em'>Brazil</span> (lucky 7), pop over to dense <span class='em'>Bangladesh</span>, take the long train across <span class='em'>Russia</span>, and land in <span class='em'>Ethiopia</span> to close the top ten.",
+    "<b>11–15:</b> Ethiopia's neighbor-in-numbers is <span class='em'>Mexico</span> (~130M twins), then aging <span class='em'>Japan</span>, the <span class='em'>Philippines</span>, <span class='em'>DR&nbsp;Congo</span>, and <span class='em'>Vietnam</span> — the exact middle of the list.",
+    "<b>16–20:</b> Cross the ~100M gate at <span class='em'>Egypt</span>, dip under it with <span class='em'>Iran</span>, bridge into <span class='em'>Turkey</span>, reach EU-leader <span class='em'>Germany</span>, and rest in <span class='em'>Thailand</span> at #20.",
+    "<b>21–25:</b> The tail is a photo finish: <span class='em'>Tanzania</span> edges the <span class='em'>United Kingdom</span>, which edges <span class='em'>France</span>, then <span class='em'>South Africa</span>, and finally the Italian boot — <span class='em'>Italy</span> — kicks in at #25."
+  ];
+
+  /* ---------------- storage ---------------- */
+  var LS_KEY = "populous25.v1";
+  var store = { mastery: {}, theme: null };
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) { var p = JSON.parse(raw); store.mastery = p.mastery || {}; store.theme = p.theme || null; }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch (e) {} }
+
+  // mastery per country: integer 0..5 (Leitner-ish box). >=4 counts as "mastered".
+  function m(r) { return store.mastery[r] || 0; }
+  function bump(r, good) {
+    var cur = m(r);
+    store.mastery[r] = good ? Math.min(5, cur + 1) : Math.max(0, cur - 1);
+    save(); renderMastery();
+  }
+  function renderMastery() {
+    var total = COUNTRIES.length * 5, sum = 0;
+    COUNTRIES.forEach(function (c) { sum += m(c.r); });
+    var pct = Math.round((sum / total) * 100);
+    document.getElementById("masteryFill").style.width = pct + "%";
+    document.getElementById("masteryPct").textContent = pct + "%";
+  }
+
+  /* ---------------- theme ---------------- */
+  var root = document.documentElement;
+  function applyTheme(t) { if (t) root.setAttribute("data-theme", t); else root.removeAttribute("data-theme"); }
+  applyTheme(store.theme);
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var isDark = store.theme ? store.theme === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    store.theme = isDark ? "light" : "dark";
+    applyTheme(store.theme); save();
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", store.theme === "dark" ? "#0e1620" : "#ece4d3");
+  });
+
+  /* ---------------- helpers ---------------- */
+  function fmtPop(n) { return n >= 1000 ? (n / 1000).toFixed(2) + " B" : n + " M"; }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  // seedless PRNG note: Math.random is fine in the browser runtime here.
+  function rnd() { return Math.random(); }
+  function byRank(r) { for (var i = 0; i < COUNTRIES.length; i++) if (COUNTRIES[i].r === r) return COUNTRIES[i]; }
+
+  /* ---------------- tabs ---------------- */
+  var views = { learn: document.getElementById("view-learn"), quiz: document.getElementById("view-quiz"), recall: document.getElementById("view-recall") };
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () {
+      document.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("active"); });
+      t.classList.add("active");
+      Object.keys(views).forEach(function (k) { views[k].classList.add("hidden"); });
+      var v = t.getAttribute("data-view");
+      views[v].classList.remove("hidden");
+      if (v === "quiz") ensureQuiz();
+      if (v === "recall") initRecall();
+    });
+  });
+
+  /* ---------------- LEARN ---------------- */
+  var CHUNKS = [[1,5],[6,10],[11,15],[16,20],[21,25]];
+  var learnChunk = 0, learnIdx = 0;
+  var chunkTabs = document.getElementById("chunkTabs");
+  CHUNKS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.className = "chunk" + (i === 0 ? " active" : "");
+    b.textContent = c[0] + "–" + c[1];
+    b.addEventListener("click", function () {
+      learnChunk = i; learnIdx = 0;
+      document.querySelectorAll(".chunk").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active"); renderFlash();
+    });
+    chunkTabs.appendChild(b);
+  });
+  function chunkList() { var c = CHUNKS[learnChunk]; return COUNTRIES.slice(c[0] - 1, c[1]); }
+  function renderFlash() {
+    var list = chunkList(), c = list[learnIdx];
+    document.getElementById("flash").innerHTML =
+      '<div class="rank">#' + c.r + '</div>' +
+      '<div class="flag">' + c.flag + '</div>' +
+      '<div class="cname">' + c.name + '</div>' +
+      '<div class="pop">' + fmtPop(c.pop) + ' <small>people</small></div>' +
+      '<div class="hook' + (c.hook ? '' : ' empty') + '">' + (c.hook || '') + '</div>';
+    document.getElementById("deckCount").textContent = (learnIdx + 1) + " / " + list.length;
+    document.getElementById("prevBtn").disabled = (learnChunk === 0 && learnIdx === 0);
+  }
+  document.getElementById("prevBtn").addEventListener("click", function () {
+    if (learnIdx > 0) { learnIdx--; }
+    else if (learnChunk > 0) { learnChunk--; learnIdx = chunkList().length - 1; syncChunkTabs(); }
+    renderFlash();
+  });
+  document.getElementById("nextBtn").addEventListener("click", function () {
+    var list = chunkList();
+    if (learnIdx < list.length - 1) { learnIdx++; }
+    else if (learnChunk < CHUNKS.length - 1) { learnChunk++; learnIdx = 0; syncChunkTabs(); }
+    renderFlash();
+  });
+  function syncChunkTabs() {
+    document.querySelectorAll(".chunk").forEach(function (x, i) { x.classList.toggle("active", i === learnChunk); });
+  }
+  document.getElementById("mnemonicBody").innerHTML = MNEMONIC.map(function (p) { return "<p>" + p + "</p>"; }).join("");
+  renderFlash();
+
+  /* ---------------- QUIZ ---------------- */
+  var quizStarted = false, qCorrect = 0, qSeen = 0, qStreak = 0;
+  var reviewQueue = []; // ranks to revisit soon (spaced repetition)
+  var current = null, answered = false;
+
+  function ensureQuiz() { if (!quizStarted) { quizStarted = true; nextQuestion(); } }
+
+  // weighted pick: lower mastery => more likely; honor review queue first.
+  function pickTarget() {
+    if (reviewQueue.length && rnd() < 0.55) { return byRank(reviewQueue.shift()); }
+    var weights = COUNTRIES.map(function (c) { return { c: c, w: (6 - m(c.r)) + 0.4 }; });
+    var tot = weights.reduce(function (s, x) { return s + x.w; }, 0);
+    var pick = rnd() * tot;
+    for (var i = 0; i < weights.length; i++) { pick -= weights[i].w; if (pick <= 0) return weights[i].c; }
+    return COUNTRIES[0];
+  }
+
+  var QKINDS = ["whichRank", "nameRank", "higherLower", "neighbor"];
+
+  function nextQuestion() {
+    answered = false;
+    var target = pickTarget();
+    var kind = QKINDS[Math.floor(rnd() * QKINDS.length)];
+    // avoid degenerate neighbor/higherLower at extremes handled inside builders
+    current = buildQuestion(kind, target);
+    renderQuestion();
+  }
+
+  function distractorRanks(correctRank, n) {
+    var pool = COUNTRIES.map(function (c) { return c.r; }).filter(function (r) { return r !== correctRank; });
+    // prefer nearby ranks as distractors (harder, better learning)
+    pool.sort(function (a, b) { return Math.abs(a - correctRank) - Math.abs(b - correctRank); });
+    var near = pool.slice(0, Math.min(8, pool.length));
+    return shuffle(near).slice(0, n);
+  }
+
+  function buildQuestion(kind, t) {
+    if (kind === "whichRank") {
+      // "Which country is ranked #r?" options = countries
+      var ds = distractorRanks(t.r, 3).map(byRank);
+      var opts = shuffle([t].concat(ds));
+      return { kind: kind, promptHTML: 'Which country ranks<span class="big">#' + t.r + '</span>', flag: null,
+        options: opts.map(function (c) { return { label: c.name, flag: c.flag, correct: c.r === t.r }; }),
+        two: false, target: t };
+    }
+    if (kind === "nameRank") {
+      // show country, ask its rank. options = ranks
+      var rs = distractorRanks(t.r, 3).concat(t.r);
+      rs = shuffle(rs.filter(function (v, i, s) { return s.indexOf(v) === i; })).slice(0, 4);
+      if (rs.indexOf(t.r) === -1) rs[0] = t.r;
+      return { kind: kind, promptHTML: 'Where does<br><b>' + t.name + '</b><br>rank?', flag: t.flag,
+        options: shuffle(rs).map(function (r) { return { label: "#" + r, correct: r === t.r }; }),
+        two: true, target: t };
+    }
+    if (kind === "higherLower") {
+      // pick another country a few ranks away, ask which is MORE populous
+      var others = COUNTRIES.filter(function (c) { return c.r !== t.r && Math.abs(c.r - t.r) <= 4; });
+      var o = others[Math.floor(rnd() * others.length)];
+      var more = t.pop >= o.pop ? t : o; // lower rank number = more people
+      return { kind: kind, promptHTML: 'Which has <b>more</b> people?', flag: null,
+        options: shuffle([t, o]).map(function (c) { return { label: c.name, flag: c.flag, correct: c.r === more.r }; }),
+        two: true, target: t };
+    }
+    // neighbor: "who comes right after #r?"
+    var dir = (t.r >= 25) ? -1 : (t.r <= 1 ? 1 : (rnd() < 0.5 ? 1 : -1));
+    var ansRank = t.r + dir;
+    var ans = byRank(ansRank);
+    var dsN = COUNTRIES.filter(function (c) { return c.r !== t.r && c.r !== ansRank; });
+    dsN.sort(function (a, b) { return Math.abs(a.r - ansRank) - Math.abs(b.r - ansRank); });
+    var optsN = shuffle([ans].concat(dsN.slice(0, 6)).filter(function (v, i, s) { return s.indexOf(v) === i; }).slice(0, 4));
+    if (optsN.indexOf(ans) === -1) optsN[0] = ans;
+    return { kind: "neighbor",
+      promptHTML: 'Who ranks <b>' + (dir === 1 ? "just below" : "just above") + '</b><br>' + t.flag + ' <b>' + t.name + '</b> (#' + t.r + ')?',
+      flag: null,
+      options: shuffle(optsN).map(function (c) { return { label: c.name, flag: c.flag, correct: c.r === ansRank }; }),
+      two: false, target: t };
+  }
+
+  var KIND_LABEL = { whichRank: "Name the rank-holder", nameRank: "Find the rank", higherLower: "Bigger of the two", neighbor: "Next in line" };
+
+  function renderQuestion() {
+    var q = current;
+    var html = '<div class="qkind">' + KIND_LABEL[q.kind] + '</div>';
+    html += '<div class="qtext">' + q.promptHTML + '</div>';
+    if (q.flag) html += '<div class="qflag">' + q.flag + '</div>';
+    html += '<div class="options ' + (q.two ? 'two' : '') + '" id="opts"></div>';
+    html += '<div class="feedback" id="feedback"></div>';
+    document.getElementById("qcard").innerHTML = html;
+
+    var box = document.getElementById("opts");
+    q.options.forEach(function (o) {
+      var b = document.createElement("button");
+      b.className = "opt";
+      b.innerHTML = (o.flag ? '<span class="oflag">' + o.flag + '</span>' : '') + '<span>' + o.label + '</span>';
+      b.addEventListener("click", function () { choose(b, o); });
+      box.appendChild(b);
+    });
+    updateQueueNote();
+  }
+
+  function choose(btn, opt) {
+    if (answered) return;
+    answered = true;
+    qSeen++;
+    var q = current, tRank = q.target.r;
+    var buttons = document.querySelectorAll("#opts .opt");
+    buttons.forEach(function (b) { b.disabled = true; });
+    var fb = document.getElementById("feedback");
+
+    if (opt.correct) {
+      btn.classList.add("correct");
+      qCorrect++; qStreak++;
+      bump(tRank, true);
+      fb.className = "feedback ok"; fb.textContent = pickPraise();
+    } else {
+      btn.classList.add("wrong");
+      qStreak = 0;
+      bump(tRank, false);
+      // reveal the correct option
+      q.options.forEach(function (o, i) { if (o.correct) buttons[i].classList.add("correct"); });
+      buttons.forEach(function (b) { if (!b.classList.contains("correct") && b !== btn) b.classList.add("dim"); });
+      // requeue for spaced review (twice — near and a bit later)
+      if (reviewQueue.indexOf(tRank) === -1) { reviewQueue.push(tRank); reviewQueue.push(tRank); }
+      fb.className = "feedback no";
+      fb.innerHTML = correctSummary(q);
+    }
+    document.getElementById("qCorrect").textContent = qCorrect;
+    document.getElementById("qStreak").textContent = qStreak;
+    document.getElementById("qSeen").textContent = qSeen;
+
+    var nb = document.createElement("button");
+    nb.className = "next-btn";
+    nb.textContent = "Next question →";
+    nb.addEventListener("click", nextQuestion);
+    document.getElementById("qcard").appendChild(nb);
+    nb.focus();
+  }
+
+  function correctSummary(q) {
+    var t = q.target;
+    if (q.kind === "whichRank") { return byRank(t.r).flag + " " + byRank(t.r).name + " is #" + t.r + "."; }
+    if (q.kind === "nameRank") { return t.flag + " " + t.name + " is #" + t.r + " (" + fmtPop(t.pop) + ")."; }
+    if (q.kind === "higherLower") {
+      var win = q.options.filter(function (o) { return o.correct; })[0];
+      return win.flag + " " + win.label + " has more people.";
+    }
+    var ans = q.options.filter(function (o) { return o.correct; })[0];
+    return "It's " + ans.flag + " " + ans.label + ".";
+  }
+
+  var PRAISE = ["Correct!", "Nailed it.", "Spot on.", "Yes!", "Exactly.", "Locked in."];
+  function pickPraise() { return PRAISE[Math.floor(rnd() * PRAISE.length)]; }
+  function updateQueueNote() {
+    var n = reviewQueue.length;
+    document.getElementById("queueNote").textContent = n ? (n + " card" + (n > 1 ? "s" : "") + " queued for review") : "Questions favor the countries you miss most.";
+  }
+
+  /* ---------------- RECALL ---------------- */
+  var placed = []; // array of ranks placed in slots (in slot order 1..25)
+  function initRecall() {
+    placed = [];
+    renderSlots();
+    renderPool();
+    var sc = document.getElementById("recallScore"); sc.className = "recall-score hidden"; sc.textContent = "";
+  }
+  function renderSlots() {
+    var el = document.getElementById("slots"); el.innerHTML = "";
+    for (var i = 0; i < 25; i++) {
+      var rank = placed[i];
+      var div = document.createElement("div");
+      div.className = "slot" + (rank ? "" : " empty");
+      var c = rank ? byRank(rank) : null;
+      div.innerHTML = '<span class="sr">' + (i + 1) + '</span>' +
+        '<span class="sc">' + (c ? c.flag + " " + c.name : "—") + '</span>';
+      if (c) {
+        (function (idx) {
+          div.style.cursor = "pointer";
+          div.title = "Tap to remove";
+          div.addEventListener("click", function () {
+            if (document.getElementById("recallScore").classList.contains("hidden")) {
+              placed.splice(idx, 1); renderSlots(); renderPool();
+            }
+          });
+        })(i);
+      }
+      el.appendChild(div);
+    }
+  }
+  function renderPool() {
+    var el = document.getElementById("pool"); el.innerHTML = "";
+    var remaining = COUNTRIES.filter(function (c) { return placed.indexOf(c.r) === -1; });
+    // present pool shuffled once per session-ish (shuffle each render is jarring; sort by name)
+    remaining.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+    remaining.forEach(function (c) {
+      var b = document.createElement("button");
+      b.className = "chip";
+      b.innerHTML = '<span>' + c.flag + '</span><span>' + c.name + '</span>';
+      b.addEventListener("click", function () {
+        if (placed.length < 25) { placed.push(c.r); renderSlots(); renderPool(); }
+      });
+      el.appendChild(b);
+    });
+  }
+  document.getElementById("recallReset").addEventListener("click", initRecall);
+  document.getElementById("recallCheck").addEventListener("click", function () {
+    if (placed.length < 25) {
+      var sc = document.getElementById("recallScore");
+      sc.className = "recall-score";
+      sc.textContent = "Place all 25 first (" + placed.length + "/25 placed).";
+      return;
+    }
+    var right = 0;
+    var el = document.getElementById("slots"); el.innerHTML = "";
+    for (var i = 0; i < 25; i++) {
+      var rank = placed[i], c = byRank(rank), correct = (rank === i + 1);
+      if (correct) { right++; bump(rank, true); } else { bump(rank, false); }
+      var div = document.createElement("div");
+      div.className = "slot " + (correct ? "right" : "wrong");
+      div.innerHTML = '<span class="sr">' + (i + 1) + '</span>' +
+        '<span class="sc">' + c.flag + " " + c.name + '</span>' +
+        (correct ? '' : '<span class="truth">actually #' + c.r + '</span>');
+      el.appendChild(div);
+    }
+    var sc = document.getElementById("recallScore");
+    sc.className = "recall-score";
+    var msg = right === 25 ? "🏆 Perfect — all 25 in order!" : right >= 20 ? "🌟 " + right + "/25 — almost there!" : right >= 12 ? "👍 " + right + "/25 — solid, keep drilling." : right + "/25 — back to Learn for a round.";
+    sc.textContent = msg;
+  });
+
+  renderMastery();
+})();
+</script>
+</body>
+</html>
