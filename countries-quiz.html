@@ -133,6 +133,10 @@
   .flash .cname { font-family: var(--serif); font-size: 2rem; font-weight: 700; margin: 4px 0 2px; text-wrap: balance; }
   .flash .pop { font-size: 1.15rem; color: var(--ocean); font-weight: 700; font-variant-numeric: tabular-nums; }
   .flash .pop small { color: var(--faint); font-weight: 600; }
+  .flash .cap { margin-top: 8px; font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+  .flash .cap .cap-pin { font-size: .95rem; }
+  .flash .cap em { font-family: var(--sans); font-size: .78rem; font-style: normal; color: var(--gold); font-weight: 700;
+    display: block; margin-top: 2px; letter-spacing: .02em; }
   .flash .hook { margin-top: 14px; font-size: .95rem; color: var(--muted); font-style: italic; max-width: 30ch;
     border-top: 1px dashed var(--line); padding-top: 12px; }
   .flash .hook.empty { border: none; padding: 0; }
@@ -299,31 +303,31 @@
 
   /* ---------------- data ---------------- */
   var COUNTRIES = [
-    { r:1,  name:"India",          flag:"🇮🇳", pop:1457, hook:"Passed China in 2023 — now #1 on Earth." },
-    { r:2,  name:"China",          flag:"🇨🇳", pop:1418, hook:"Was #1 for centuries; population now slowly falling." },
-    { r:3,  name:"United States",  flag:"🇺🇸", pop:347,  hook:"The only non-Asian country in the top 5." },
-    { r:4,  name:"Indonesia",      flag:"🇮🇩", pop:285,  hook:"Most populous Muslim-majority nation; 17,000 islands." },
-    { r:5,  name:"Pakistan",       flag:"🇵🇰", pop:274,  hook:"Rounds out the top 5 — all four biggest below India are in Asia." },
-    { r:6,  name:"Nigeria",        flag:"🇳🇬", pop:235,  hook:"#1 in Africa — the giant of the continent." },
-    { r:7,  name:"Brazil",         flag:"🇧🇷", pop:212,  hook:"#1 in South America; lucky number 7." },
-    { r:8,  name:"Bangladesh",     flag:"🇧🇩", pop:175,  hook:"Tiny land area, enormous population — very dense." },
-    { r:9,  name:"Russia",         flag:"🇷🇺", pop:144,  hook:"Largest country by land — yet only 9th by people." },
-    { r:10, name:"Ethiopia",       flag:"🇪🇹", pop:134,  hook:"#2 in Africa; rounds out the top 10." },
-    { r:11, name:"Mexico",         flag:"🇲🇽", pop:131,  hook:"Just behind Ethiopia — a near tie around 130M." },
-    { r:12, name:"Japan",          flag:"🇯🇵", pop:123,  hook:"Shrinking and aging — sliding down the list each year." },
-    { r:13, name:"Philippines",    flag:"🇵🇭", pop:118,  hook:"Leads a tight Southeast-Asian cluster." },
-    { r:14, name:"DR Congo",       flag:"🇨🇩", pop:116,  hook:"Fast-growing #3 in Africa; heart of the continent." },
-    { r:15, name:"Vietnam",        flag:"🇻🇳", pop:111,  hook:"The midpoint of the whole list — halfway marker." },
-    { r:16, name:"Egypt",          flag:"🇪🇬", pop:101,  hook:"The ~100M gate — everything above is nine figures." },
-    { r:17, name:"Iran",           flag:"🇮🇷", pop:92,   hook:"First country under 100M." },
-    { r:18, name:"Turkey",         flag:"🇹🇷", pop:88,   hook:"Bridges Europe and Asia — just above Germany." },
-    { r:19, name:"Germany",        flag:"🇩🇪", pop:84,   hook:"#1 in the European Union." },
-    { r:20, name:"Thailand",       flag:"🇹🇭", pop:72,   hook:"Closes the top 20." },
-    { r:21, name:"Tanzania",       flag:"🇹🇿", pop:70,   hook:"Rising fast — the last African country in the 25." },
-    { r:22, name:"United Kingdom", flag:"🇬🇧", pop:69,   hook:"Neck-and-neck with Tanzania around 70M." },
-    { r:23, name:"France",         flag:"🇫🇷", pop:67,   hook:"Just behind the UK — a classic European pair." },
-    { r:24, name:"South Africa",   flag:"🇿🇦", pop:64,   hook:"Southern tip of the continent." },
-    { r:25, name:"Italy",          flag:"🇮🇹", pop:59,   hook:"The boot brings up the rear at #25." }
+    { r:1,  name:"India",          flag:"🇮🇳", pop:1457, cap:"New Delhi",        hook:"Passed China in 2023 — now #1 on Earth." },
+    { r:2,  name:"China",          flag:"🇨🇳", pop:1418, cap:"Beijing",          hook:"Was #1 for centuries; population now slowly falling." },
+    { r:3,  name:"United States",  flag:"🇺🇸", pop:347,  cap:"Washington, D.C.", hook:"The only non-Asian country in the top 5." },
+    { r:4,  name:"Indonesia",      flag:"🇮🇩", pop:285,  cap:"Jakarta",  capNote:"relocating to Nusantara", hook:"Most populous Muslim-majority nation; 17,000 islands." },
+    { r:5,  name:"Pakistan",       flag:"🇵🇰", pop:274,  cap:"Islamabad",        capNote:"not Karachi", hook:"Rounds out the top 5 — all four biggest below India are in Asia." },
+    { r:6,  name:"Nigeria",        flag:"🇳🇬", pop:235,  cap:"Abuja",            capNote:"purpose-built; not Lagos", hook:"#1 in Africa — the giant of the continent." },
+    { r:7,  name:"Brazil",         flag:"🇧🇷", pop:212,  cap:"Brasília",         capNote:"planned city; not Rio", hook:"#1 in South America; lucky number 7." },
+    { r:8,  name:"Bangladesh",     flag:"🇧🇩", pop:175,  cap:"Dhaka",            hook:"Tiny land area, enormous population — very dense." },
+    { r:9,  name:"Russia",         flag:"🇷🇺", pop:144,  cap:"Moscow",           hook:"Largest country by land — yet only 9th by people." },
+    { r:10, name:"Ethiopia",       flag:"🇪🇹", pop:134,  cap:"Addis Ababa",      hook:"#2 in Africa; rounds out the top 10." },
+    { r:11, name:"Mexico",         flag:"🇲🇽", pop:131,  cap:"Mexico City",      hook:"Just behind Ethiopia — a near tie around 130M." },
+    { r:12, name:"Japan",          flag:"🇯🇵", pop:123,  cap:"Tokyo",            hook:"Shrinking and aging — sliding down the list each year." },
+    { r:13, name:"Philippines",    flag:"🇵🇭", pop:118,  cap:"Manila",           hook:"Leads a tight Southeast-Asian cluster." },
+    { r:14, name:"DR Congo",       flag:"🇨🇩", pop:116,  cap:"Kinshasa",         hook:"Fast-growing #3 in Africa; heart of the continent." },
+    { r:15, name:"Vietnam",        flag:"🇻🇳", pop:111,  cap:"Hanoi",            capNote:"not Ho Chi Minh City", hook:"The midpoint of the whole list — halfway marker." },
+    { r:16, name:"Egypt",          flag:"🇪🇬", pop:101,  cap:"Cairo",            hook:"The ~100M gate — everything above is nine figures." },
+    { r:17, name:"Iran",           flag:"🇮🇷", pop:92,   cap:"Tehran",           hook:"First country under 100M." },
+    { r:18, name:"Turkey",         flag:"🇹🇷", pop:88,   cap:"Ankara",           capNote:"not Istanbul", hook:"Bridges Europe and Asia — just above Germany." },
+    { r:19, name:"Germany",        flag:"🇩🇪", pop:84,   cap:"Berlin",           hook:"#1 in the European Union." },
+    { r:20, name:"Thailand",       flag:"🇹🇭", pop:72,   cap:"Bangkok",          hook:"Closes the top 20." },
+    { r:21, name:"Tanzania",       flag:"🇹🇿", pop:70,   cap:"Dodoma",           capNote:"not Dar es Salaam", hook:"Rising fast — the last African country in the 25." },
+    { r:22, name:"United Kingdom", flag:"🇬🇧", pop:69,   cap:"London",           hook:"Neck-and-neck with Tanzania around 70M." },
+    { r:23, name:"France",         flag:"🇫🇷", pop:67,   cap:"Paris",            hook:"Just behind the UK — a classic European pair." },
+    { r:24, name:"South Africa",   flag:"🇿🇦", pop:64,   cap:"Pretoria",         capNote:"one of three capitals", hook:"Southern tip of the continent." },
+    { r:25, name:"Italy",          flag:"🇮🇹", pop:59,   cap:"Rome",             hook:"The boot brings up the rear at #25." }
   ];
 
   var MNEMONIC = [
@@ -415,6 +419,8 @@
       '<div class="flag">' + c.flag + '</div>' +
       '<div class="cname">' + c.name + '</div>' +
       '<div class="pop">' + fmtPop(c.pop) + ' <small>people</small></div>' +
+      '<div class="cap"><span class="cap-pin">📍</span> ' + c.cap +
+        (c.capNote ? ' <em>(' + c.capNote + ')</em>' : '') + '</div>' +
       '<div class="hook' + (c.hook ? '' : ' empty') + '">' + (c.hook || '') + '</div>';
     document.getElementById("deckCount").textContent = (learnIdx + 1) + " / " + list.length;
     document.getElementById("prevBtn").disabled = (learnChunk === 0 && learnIdx === 0);
@@ -453,7 +459,7 @@
     return COUNTRIES[0];
   }
 
-  var QKINDS = ["whichRank", "nameRank", "higherLower", "neighbor"];
+  var QKINDS = ["whichRank", "nameRank", "higherLower", "neighbor", "capitalOf", "whichCapCountry"];
 
   function nextQuestion() {
     answered = false;
@@ -499,6 +505,22 @@
         options: shuffle([t, o]).map(function (c) { return { label: c.name, flag: c.flag, correct: c.r === more.r }; }),
         two: true, target: t };
     }
+    if (kind === "capitalOf") {
+      // show country, ask its capital. options = capitals
+      var dsCap = distractorRanks(t.r, 3).map(byRank);
+      var optsCap = shuffle([t].concat(dsCap));
+      return { kind: kind, promptHTML: 'What is the capital of<br>' + t.flag + ' <b>' + t.name + '</b>?', flag: null,
+        options: optsCap.map(function (c) { return { label: c.cap, correct: c.r === t.r }; }),
+        two: true, target: t };
+    }
+    if (kind === "whichCapCountry") {
+      // show capital, ask which country. options = country names
+      var dsWc = distractorRanks(t.r, 3).map(byRank);
+      var optsWc = shuffle([t].concat(dsWc));
+      return { kind: kind, promptHTML: '<span class="big">' + t.cap + '</span>is the capital of…', flag: null,
+        options: optsWc.map(function (c) { return { label: c.name, flag: c.flag, correct: c.r === t.r }; }),
+        two: false, target: t };
+    }
     // neighbor: "who comes right after #r?"
     var dir = (t.r >= 25) ? -1 : (t.r <= 1 ? 1 : (rnd() < 0.5 ? 1 : -1));
     var ansRank = t.r + dir;
@@ -514,7 +536,7 @@
       two: false, target: t };
   }
 
-  var KIND_LABEL = { whichRank: "Name the rank-holder", nameRank: "Find the rank", higherLower: "Bigger of the two", neighbor: "Next in line" };
+  var KIND_LABEL = { whichRank: "Name the rank-holder", nameRank: "Find the rank", higherLower: "Bigger of the two", neighbor: "Next in line", capitalOf: "Name the capital", whichCapCountry: "Whose capital?" };
 
   function renderQuestion() {
     var q = current;
@@ -581,6 +603,12 @@
     if (q.kind === "higherLower") {
       var win = q.options.filter(function (o) { return o.correct; })[0];
       return win.flag + " " + win.label + " has more people.";
+    }
+    if (q.kind === "capitalOf") {
+      return t.flag + " " + t.name + " → " + t.cap + (t.capNote ? " (" + t.capNote + ")" : "") + ".";
+    }
+    if (q.kind === "whichCapCountry") {
+      return t.cap + " is the capital of " + t.flag + " " + t.name + ".";
     }
     var ans = q.options.filter(function (o) { return o.correct; })[0];
     return "It's " + ans.flag + " " + ans.label + ".";
