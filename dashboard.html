@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1220">
+<title>Life HQ — Personal Dashboard</title>
+<style>
+  :root{
+    --bg1:#0f1220; --bg2:#171a2e; --panel:#1b1f38; --panel2:#232848; --panel3:#2b3157;
+    --text:#eef1ff; --muted:#9aa2c8; --faint:#6b719c; --line:rgba(255,255,255,.09);
+    --violet:#8b7bff; --cyan:#4fd6e8; --pink:#ff7bb0; --green:#54e0a3; --amber:#ffcb5b; --red:#ff6b7d;
+    --fitness:#54e0a3; --finance:#ffcb5b; --rutledge:#8b7bff; --other:#4fd6e8;
+    --grad:linear-gradient(135deg,#8b7bff,#4fd6e8);
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+    --r:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;min-height:100%;background:var(--bg1);color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{background:radial-gradient(1200px 700px at 80% -10%, #23284a 0%, var(--bg1) 55%);min-height:100vh;padding-bottom:88px;}
+  button{font-family:inherit;cursor:pointer;}
+  input,textarea,select{font-family:inherit;}
+  ::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:var(--panel3);border-radius:9px;}
+
+  /* Layout */
+  .app{max-width:900px;margin:0 auto;padding:0 16px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 4px 8px;gap:12px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.2rem;}
+  .brand .logo{width:38px;height:38px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-size:1.2rem;box-shadow:var(--shadow);}
+  .brand small{display:block;font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.3px;margin-top:1px;}
+  .top-actions{display:flex;gap:8px;}
+  .icon-btn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;width:42px;height:42px;font-size:1.1rem;display:grid;place-items:center;transition:transform .1s,background .15s;}
+  .icon-btn:active{transform:scale(.92);} .icon-btn:hover{background:var(--panel2);}
+
+  /* Tabs / bottom nav */
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(15,18,32,.92);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));}
+  .nav-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;gap:2px;}
+  .nav button{flex:1;background:none;border:none;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 2px;border-radius:12px;font-size:.66rem;font-weight:600;transition:color .15s;}
+  .nav button .ic{font-size:1.25rem;}
+  .nav button.active{color:var(--text);}
+  .nav button.active .ic{filter:drop-shadow(0 0 8px rgba(139,123,255,.6));}
+
+  /* Cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);}
+  .grid{display:grid;gap:12px;}
+  .g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr 1fr;} .g4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:640px){.g3,.g4{grid-template-columns:1fr 1fr;} }
+  @media(max-width:420px){.g2,.g3,.g4{grid-template-columns:1fr;} }
+
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 4px 12px;}
+  .section-title h2{margin:0;font-size:1.15rem;font-weight:800;}
+  .section-title .sub{color:var(--muted);font-size:.82rem;}
+
+  .hero{margin:6px 0 4px;padding:20px;background:linear-gradient(135deg,rgba(139,123,255,.18),rgba(79,214,232,.10));
+    border:1px solid var(--line);border-radius:20px;}
+  .hero h1{margin:0 0 4px;font-size:1.55rem;font-weight:800;}
+  .hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p{margin:0;color:var(--muted);font-size:.92rem;}
+
+  /* Stat tiles */
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;}
+  .stat .k{font-size:.74rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;}
+  .stat .v{font-size:1.7rem;font-weight:800;margin-top:4px;line-height:1;}
+  .stat .d{font-size:.72rem;color:var(--faint);margin-top:5px;}
+
+  /* Pills / chips */
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
+    background:var(--panel3);color:var(--text);border:1px solid var(--line);}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* Progress bar */
+  .bar{height:9px;border-radius:999px;background:var(--panel3);overflow:hidden;}
+  .bar > i{display:block;height:100%;border-radius:999px;background:var(--grad);transition:width .4s;}
+
+  /* Rows / lists */
+  .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none;}
+  .row .grow{flex:1;min-width:0;}
+  .row .title{font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;}
+  .row .meta{font-size:.75rem;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .strike{text-decoration:line-through;color:var(--faint);}
+
+  .check{width:24px;height:24px;border-radius:8px;border:2px solid var(--faint);background:none;display:grid;place-items:center;
+    color:transparent;font-size:.9rem;font-weight:900;flex-shrink:0;transition:all .12s;}
+  .check.on{background:var(--green);border-color:var(--green);color:#0a2a1c;}
+
+  /* Buttons */
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 16px;font-weight:700;font-size:.88rem;transition:transform .1s,background .15s;}
+  .btn:active{transform:scale(.96);} .btn:hover{background:var(--panel3);}
+  .btn.primary{background:var(--grad);border:none;color:#0b0e1c;}
+  .btn.ghost{background:none;} .btn.sm{padding:6px 11px;font-size:.8rem;border-radius:10px;}
+  .btn.danger{color:var(--red);} .btn.block{width:100%;justify-content:center;display:flex;}
+  .add-line{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .add-line input,.add-line select{flex:1;min-width:120px;}
+
+  /* Inputs */
+  input,textarea,select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:10px 12px;font-size:.9rem;width:100%;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--violet);}
+  textarea{resize:vertical;min-height:70px;}
+  label.fld{display:block;font-size:.78rem;color:var(--muted);font-weight:600;margin:12px 0 5px;}
+
+  .iconbtn{background:none;border:none;color:var(--faint);font-size:1rem;padding:4px 6px;border-radius:8px;}
+  .iconbtn:hover{color:var(--text);background:var(--panel2);}
+
+  /* Domain accents */
+  .acc-fitness{--acc:var(--fitness);} .acc-finance{--acc:var(--finance);}
+  .acc-rutledge{--acc:var(--rutledge);} .acc-other{--acc:var(--other);}
+  .domain-card{border-left:4px solid var(--acc,var(--violet));}
+  .domain-tag{background:color-mix(in srgb,var(--acc,var(--violet)) 20%, transparent);color:var(--acc,var(--text));
+    padding:2px 9px;border-radius:999px;font-size:.68rem;font-weight:800;}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(6,8,18,.72);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--bg2);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:900px;max-height:88vh;overflow:auto;
+    padding:20px 18px calc(24px + env(safe-area-inset-bottom));}
+  @media(min-width:640px){.overlay{align-items:center;} .modal{border-radius:20px;max-height:82vh;}}
+  .modal h3{margin:0 0 4px;font-size:1.2rem;}
+  .modal .close{float:right;}
+
+  /* Sparkline */
+  .spark{width:100%;height:38px;display:block;}
+
+  /* Empty state */
+  .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:.9rem;}
+  .empty .big{font-size:2rem;display:block;margin-bottom:6px;opacity:.7;}
+
+  .hidden{display:none!important;}
+  .fade{animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--panel3);border:1px solid var(--line);
+    color:var(--text);padding:11px 18px;border-radius:12px;font-weight:600;font-size:.88rem;z-index:80;box-shadow:var(--shadow);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .muted{color:var(--muted);} .small{font-size:.8rem;} .center{text-align:center;}
+  .flex{display:flex;align-items:center;gap:10px;} .between{justify-content:space-between;} .wrap{flex-wrap:wrap;}
+  a{color:var(--cyan);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🧭</div>
+      <div>Life HQ<small id="brandSub">Your personal command center</small></div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btnReview" title="Weekly review">📝</button>
+      <button class="icon-btn" id="btnSettings" title="Settings & data">⚙️</button>
+    </div>
+  </div>
+
+  <div id="view"></div>
+</div>
+
+<nav class="nav"><div class="nav-inner" id="nav"></div></nav>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Life HQ — a single-file personal dashboard.
+   All data lives in localStorage under 'lifehq_v1'.
+   Designed to be iterated on with Claude — see the "Iterate"
+   tab for the exact workflow.
+   ============================================================ */
+
+const KEY = 'lifehq_v1';
+const todayStr = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2,9);
+const fmtDate = s => { if(!s) return ''; const d=new Date(s+'T00:00:00'); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); };
+const daysBetween = (a,b) => Math.round((new Date(b)-new Date(a))/86400000);
+
+/* ---------- Domains: fully customizable, seeded with the four asked for ---------- */
+const DEFAULT_DOMAINS = [
+  {id:'fitness',  name:'Fitness',  emoji:'💪', color:'fitness'},
+  {id:'finance',  name:'Finance',  emoji:'💰', color:'finance'},
+  {id:'rutledge', name:'Rutledge', emoji:'🏡', color:'rutledge'},
+  {id:'other',    name:'Other',    emoji:'✨', color:'other'},
+];
+
+function seed(){
+  return {
+    profile:{ name:'', focus:'' },
+    domains: JSON.parse(JSON.stringify(DEFAULT_DOMAINS)),
+    goals:[
+      {id:uid(),domain:'fitness',title:'Move 4x / week',target:16,current:0,unit:'workouts',due:'',done:false},
+      {id:uid(),domain:'finance',title:'Build emergency fund',target:10000,current:0,unit:'$',due:'',done:false},
+    ],
+    tasks:[
+      {id:uid(),domain:'rutledge',title:'Plan the week',when:'today',priority:2,due:todayStr(),done:false},
+    ],
+    habits:[
+      {id:uid(),domain:'fitness',name:'Move body',emoji:'🏃‍♀️',history:{}},
+      {id:uid(),domain:'other',name:'10 min reset / journal',emoji:'🧘‍♀️',history:{}},
+    ],
+    metrics:[
+      {id:uid(),domain:'fitness',name:'Weight',unit:'lb',entries:[]},
+      {id:uid(),domain:'finance',name:'Savings',unit:'$',entries:[]},
+    ],
+    reviews:[],
+    settings:{ tab:'today' }
+  };
+}
+
+let D = load();
+function load(){ try{ const r=JSON.parse(localStorage.getItem(KEY)); if(r&&r.domains) return r; }catch(e){} return seed(); }
+function save(){ localStorage.setItem(KEY, JSON.stringify(D)); }
+
+/* ---------- helpers ---------- */
+const domain = id => D.domains.find(d=>d.id===id) || {name:'—',emoji:'•',color:'other'};
+const accClass = id => 'acc-'+(domain(id).color||'other');
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- streaks ---------- */
+function streak(h){
+  let s=0; let d=new Date();
+  // if today not done, start counting from yesterday so the streak isn't "broken" mid-day
+  if(!h.history[todayStr()]) d.setDate(d.getDate()-1);
+  for(;;){ const k=d.toISOString().slice(0,10); if(h.history[k]){ s++; d.setDate(d.getDate()-1);} else break; }
+  return s;
+}
+function doneCount(h){ return Object.values(h.history).filter(Boolean).length; }
+function last7(h){ const out=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); out.push(!!h.history[d.toISOString().slice(0,10)]); } return out; }
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const TABS = [
+  {id:'today',   ic:'🏠', label:'Today'},
+  {id:'goals',   ic:'🎯', label:'Goals'},
+  {id:'tasks',   ic:'✅', label:'Tasks'},
+  {id:'habits',  ic:'🔥', label:'Habits'},
+  {id:'metrics', ic:'📈', label:'Track'},
+  {id:'iterate', ic:'✨', label:'Iterate'},
+];
+function renderNav(){
+  document.getElementById('nav').innerHTML = TABS.map(t=>
+    `<button class="${D.settings.tab===t.id?'active':''}" onclick="go('${t.id}')"><span class="ic">${t.ic}</span>${t.label}</button>`
+  ).join('');
+}
+function go(tab){ D.settings.tab=tab; save(); renderNav(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function render(){
+  const v=document.getElementById('view');
+  const map={today:viewToday,goals:viewGoals,tasks:viewTasks,habits:viewHabits,metrics:viewMetrics,iterate:viewIterate};
+  v.innerHTML=(map[D.settings.tab]||viewToday)();
+  v.className='fade';
+  void v.offsetWidth; v.classList.add('fade');
+}
+
+/* ============================================================
+   TODAY — unified cross-domain command center
+   ============================================================ */
+function viewToday(){
+  const name = D.profile.name ? ', '+esc(D.profile.name) : '';
+  const hour = new Date().getHours();
+  const greet = hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+  const openTasks = D.tasks.filter(t=>!t.done);
+  const todayTasks = openTasks.filter(t=>t.when==='today' || (t.due&&t.due<=todayStr()));
+  const habitsToday = D.habits;
+  const habitsDone = habitsToday.filter(h=>h.history[todayStr()]).length;
+  const activeGoals = D.goals.filter(g=>!g.done);
+  const goalPct = activeGoals.length? Math.round(activeGoals.reduce((a,g)=>a+Math.min(1,(g.current||0)/(g.target||1)),0)/activeGoals.length*100):0;
+
+  // per-domain snapshot
+  const domCards = D.domains.map(dm=>{
+    const t = openTasks.filter(x=>x.domain===dm.id).length;
+    const g = activeGoals.filter(x=>x.domain===dm.id).length;
+    const h = D.habits.filter(x=>x.domain===dm.id);
+    const hDone = h.filter(x=>x.history[todayStr()]).length;
+    return `<button class="stat domain-card ${accClass(dm.id)}" style="text-align:left" onclick="openDomain('${dm.id}')">
+      <div class="k">${dm.emoji} ${esc(dm.name)}</div>
+      <div class="v" style="font-size:1.15rem;margin-top:6px">${t} <span class="muted small" style="font-weight:600">open</span></div>
+      <div class="d">${g} goal${g!==1?'s':''} · ${hDone}/${h.length} habits</div>
+    </button>`;
+  }).join('');
+
+  const focusHtml = D.profile.focus
+    ? `<div class="chip" style="margin-top:10px">🎯 Focus: ${esc(D.profile.focus)}</div>`
+    : `<button class="btn ghost sm" style="margin-top:10px" onclick="editProfile()">+ Set this week's focus</button>`;
+
+  return `
+  <div class="hero">
+    <h1>${greet}<span class="g">${name}</span></h1>
+    <p>Here's everything across your world, in one place.</p>
+    ${focusHtml}
+  </div>
+
+  <div class="grid g4" style="margin-top:14px">
+    <div class="stat"><div class="k">✅ Today's tasks</div><div class="v">${todayTasks.length}</div><div class="d">${openTasks.length} open total</div></div>
+    <div class="stat"><div class="k">🔥 Habits</div><div class="v">${habitsDone}/${habitsToday.length}</div><div class="d">checked in today</div></div>
+    <div class="stat"><div class="k">🎯 Goal progress</div><div class="v">${goalPct}%</div><div class="d">${activeGoals.length} active</div></div>
+    <div class="stat"><div class="k">📅 ${new Date().toLocaleDateString(undefined,{weekday:'short'})}</div><div class="v" style="font-size:1.3rem;margin-top:8px">${new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div><div class="d">${daysToReview()}</div></div>
+  </div>
+
+  <div class="section-title"><h2>By area of life</h2><span class="sub">tap to open</span></div>
+  <div class="grid g4">${domCards}</div>
+
+  <div class="section-title"><h2>Focus for today</h2><span class="sub">${todayTasks.length} item${todayTasks.length!==1?'s':''}</span></div>
+  <div class="card">
+    ${todayTasks.length? todayTasks.map(taskRow).join('') : `<div class="empty"><span class="big">🌤️</span>Nothing scheduled for today. Add a task or enjoy the calm.</div>`}
+    <div class="add-line">
+      <input id="qtask" placeholder="Quick add a task for today…" onkeydown="if(event.key==='Enter')quickTask()">
+      <button class="btn primary sm" onclick="quickTask()">Add</button>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>Today's habits</h2><span class="sub">${habitsDone}/${habitsToday.length} done</span></div>
+  <div class="card">
+    ${habitsToday.length? habitsToday.map(habitTodayRow).join('') : `<div class="empty">No habits yet — build one in the Habits tab.</div>`}
+  </div>
+
+  <div style="height:8px"></div>
+  <button class="btn ghost block" onclick="startReview()">📝 Do a weekly review →</button>
+  `;
+}
+function daysToReview(){
+  const last = D.reviews[0]; if(!last) return 'Time for your first review';
+  const d = daysBetween(last.date, todayStr());
+  return d===0?'Reviewed today ✓':d===1?'1 day since review':`${d} days since review`;
+}
+
+/* ============================================================
+   GOALS
+   ============================================================ */
+function viewGoals(){
+  const domSections = D.domains.map(dm=>{
+    const gs = D.goals.filter(g=>g.domain===dm.id);
+    if(!gs.length) return '';
+    return `<div class="section-title"><h2>${dm.emoji} ${esc(dm.name)}</h2><span class="sub">${gs.filter(g=>!g.done).length} active</span></div>
+      <div class="card ${accClass(dm.id)}">${gs.map(goalRow).join('')}</div>`;
+  }).join('');
+  return `
+  <div class="section-title"><h2>🎯 Goals</h2><button class="btn primary sm" onclick="editGoal()">+ New goal</button></div>
+  <p class="muted small" style="margin:0 4px 8px">Big outcomes with a number to move. Log progress and watch the bar fill.</p>
+  ${D.goals.length? domSections : `<div class="card"><div class="empty"><span class="big">🎯</span>No goals yet. Set one big outcome per area of life.</div></div>`}
+  `;
+}
+function goalRow(g){
+  const pct = Math.min(100, Math.round((g.current||0)/(g.target||1)*100));
+  return `<div class="row">
+    <button class="check ${g.done?'on':''}" onclick="toggleGoal('${g.id}')">✓</button>
+    <div class="grow">
+      <div class="title ${g.done?'strike':''}">${esc(g.title)}</div>
+      <div class="meta"><span class="domain-tag">${domain(g.domain).name}</span>
+        <span>${fmtNum(g.current)} / ${fmtNum(g.target)} ${esc(g.unit||'')}</span>
+        ${g.due?`<span>· due ${fmtDate(g.due)}</span>`:''}</div>
+      <div class="bar" style="margin-top:7px"><i style="width:${pct}%"></i></div>
+    </div>
+    <button class="btn sm" onclick="logGoal('${g.id}')">+ Log</button>
+    <button class="iconbtn" onclick="editGoal('${g.id}')">✏️</button>
+  </div>`;
+}
+const fmtNum = n => (n==null?0:n).toLocaleString();
+
+/* ============================================================
+   TASKS
+   ============================================================ */
+function viewTasks(){
+  const buckets=[['today','🔆 Today'],['week','🗓️ This week'],['later','💭 Later']];
+  let filterDom = D._taskFilter||'all';
+  const domFilter = `<div class="flex wrap" style="margin:0 4px 12px">
+    ${['all',...D.domains.map(d=>d.id)].map(id=>{
+      const nm = id==='all'?'All':domain(id).emoji+' '+domain(id).name;
+      return `<button class="chip" style="${filterDom===id?'background:var(--grad);color:#0b0e1c':''}" onclick="D._taskFilter='${id}';render()">${nm}</button>`;
+    }).join('')}
+  </div>`;
+  const sections = buckets.map(([w,label])=>{
+    let ts = D.tasks.filter(t=>t.when===w);
+    if(filterDom!=='all') ts=ts.filter(t=>t.domain===filterDom);
+    ts.sort((a,b)=>(a.done-b.done)||(b.priority-a.priority)||((a.due||'z').localeCompare(b.due||'z')));
+    return `<div class="section-title"><h2 style="font-size:1rem">${label}</h2><span class="sub">${ts.filter(t=>!t.done).length} open</span></div>
+      <div class="card">${ts.length? ts.map(taskRow).join('') : `<div class="empty small">Nothing here.</div>`}
+      <div class="add-line"><input id="add_${w}" placeholder="Add to ${label.replace(/^\S+\s/,'').toLowerCase()}…" onkeydown="if(event.key==='Enter')addTask('${w}')"><button class="btn primary sm" onclick="addTask('${w}')">Add</button></div>
+      </div>`;
+  }).join('');
+  return `<div class="section-title"><h2>✅ Tasks</h2><span class="sub">${D.tasks.filter(t=>!t.done).length} open</span></div>${domFilter}${sections}`;
+}
+function taskRow(t){
+  const pr=['','·','!','‼️'][t.priority]||'';
+  const overdue = t.due && !t.done && t.due<todayStr();
+  return `<div class="row">
+    <button class="check ${t.done?'on':''}" onclick="toggleTask('${t.id}')">✓</button>
+    <div class="grow">
+      <div class="title ${t.done?'strike':''}">${esc(t.title)} ${t.priority>=2?`<span style="color:var(--amber)">${pr}</span>`:''}</div>
+      <div class="meta"><span class="domain-tag ${''}">${domain(t.domain).emoji} ${domain(t.domain).name}</span>
+        ${t.due?`<span style="color:${overdue?'var(--red)':'var(--muted)'}">${overdue?'overdue ':''}${fmtDate(t.due)}</span>`:''}</div>
+    </div>
+    <button class="iconbtn" onclick="editTask('${t.id}')">✏️</button>
+  </div>`;
+}
+
+/* ============================================================
+   HABITS — streaks & the daily loop
+   ============================================================ */
+function viewHabits(){
+  return `<div class="section-title"><h2>🔥 Habits</h2><button class="btn primary sm" onclick="editHabit()">+ New habit</button></div>
+  <p class="muted small" style="margin:0 4px 10px">Small daily reps. Tap the circle to check in — keep the streak alive.</p>
+  ${D.habits.length? `<div class="grid g2">${D.habits.map(habitCard).join('')}</div>` : `<div class="card"><div class="empty"><span class="big">🔥</span>No habits yet. Consistency beats intensity.</div></div>`}`;
+}
+function habitCard(h){
+  const on = !!h.history[todayStr()]; const s=streak(h); const wk=last7(h);
+  return `<div class="card ${accClass(h.domain)} domain-card" style="padding:15px">
+    <div class="flex between">
+      <div class="flex" style="gap:9px"><span style="font-size:1.4rem">${h.emoji||'⭐'}</span>
+        <div><div class="title">${esc(h.name)}</div><div class="meta"><span class="domain-tag">${domain(h.domain).name}</span></div></div></div>
+      <button class="iconbtn" onclick="editHabit('${h.id}')">✏️</button>
+    </div>
+    <div class="flex between" style="margin-top:13px">
+      <div><div class="v" style="font-size:1.5rem;font-weight:800">🔥 ${s}</div><div class="d small muted">day streak</div></div>
+      <div class="flex" style="gap:5px">${wk.map((d,i)=>`<div title="${i===6?'today':''}" style="width:15px;height:15px;border-radius:5px;background:${d?'var(--green)':'var(--panel3)'}"></div>`).join('')}</div>
+    </div>
+    <button class="btn ${on?'':'primary'} block" style="margin-top:13px;${on?'color:var(--green)':''}" onclick="toggleHabit('${h.id}')">${on?'✓ Done today':'Check in'}</button>
+  </div>`;
+}
+function habitTodayRow(h){
+  const on=!!h.history[todayStr()]; const s=streak(h);
+  return `<div class="row">
+    <button class="check ${on?'on':''}" onclick="toggleHabit('${h.id}')">✓</button>
+    <div class="grow"><div class="title ${on?'strike':''}">${h.emoji||'⭐'} ${esc(h.name)}</div>
+      <div class="meta"><span class="domain-tag">${domain(h.domain).name}</span><span>🔥 ${s} day streak</span></div></div>
+  </div>`;
+}
+
+/* ============================================================
+   METRICS — trackable numbers with sparklines
+   ============================================================ */
+function viewMetrics(){
+  return `<div class="section-title"><h2>📈 Trackers</h2><button class="btn primary sm" onclick="editMetric()">+ New tracker</button></div>
+  <p class="muted small" style="margin:0 4px 10px">Log any number over time — weight, spend, savings, miles, mood. See the trend.</p>
+  ${D.metrics.length? `<div class="grid g2">${D.metrics.map(metricCard).join('')}</div>`:`<div class="card"><div class="empty"><span class="big">📈</span>No trackers yet.</div></div>`}`;
+}
+function metricCard(m){
+  const e=[...m.entries].sort((a,b)=>a.date.localeCompare(b.date));
+  const latest=e[e.length-1]; const prev=e[e.length-2];
+  const delta = latest&&prev ? latest.value-prev.value : null;
+  return `<div class="card ${accClass(m.domain)} domain-card" style="padding:15px">
+    <div class="flex between">
+      <div><div class="title">${esc(m.name)}</div><div class="meta"><span class="domain-tag">${domain(m.domain).name}</span></div></div>
+      <button class="iconbtn" onclick="editMetric('${m.id}')">✏️</button>
+    </div>
+    <div class="flex between" style="margin-top:10px;align-items:flex-end">
+      <div><div class="v" style="font-size:1.7rem;font-weight:800">${latest?fmtNum(latest.value):'—'}<span class="muted small" style="font-size:.8rem;font-weight:600"> ${esc(m.unit||'')}</span></div>
+        ${delta!=null?`<div class="d small" style="color:${delta>0?'var(--green)':delta<0?'var(--red)':'var(--muted)'}">${delta>0?'▲':delta<0?'▼':'•'} ${fmtNum(Math.abs(delta))} since last</div>`:'<div class="d small muted">first entry pending</div>'}</div>
+    </div>
+    ${sparkline(e)}
+    <div class="add-line"><input id="mv_${m.id}" type="number" step="any" placeholder="New value…" onkeydown="if(event.key==='Enter')logMetric('${m.id}')"><button class="btn primary sm" onclick="logMetric('${m.id}')">Log</button></div>
+  </div>`;
+}
+function sparkline(e){
+  if(e.length<2) return `<div class="spark" style="display:grid;place-items:center;color:var(--faint);font-size:.75rem">need 2+ entries for a trend</div>`;
+  const vals=e.map(x=>x.value); const min=Math.min(...vals),max=Math.max(...vals); const rng=max-min||1;
+  const W=300,H=38; const pts=e.map((x,i)=>[i/(e.length-1)*W, H-4-((x.value-min)/rng)*(H-8)]);
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=`M0 ${H} L`+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')+` L${W} ${H} Z`;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b7bff" stop-opacity=".35"/><stop offset="1" stop-color="#8b7bff" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#sg)"/><path d="${path}" fill="none" stroke="#8b7bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="#4fd6e8"/></svg>`;
+}
+
+/* ============================================================
+   ITERATE — the feedback loop with Claude
+   ============================================================ */
+function viewIterate(){
+  const stats = `${D.goals.length} goals · ${D.tasks.length} tasks · ${D.habits.length} habits · ${D.metrics.length} trackers`;
+  return `
+  <div class="hero"><h1>✨ Make it <span class="g">yours</span></h1>
+    <p>This dashboard is a starting point. Tell Claude what you want and it rewrites the app for you.</p></div>
+
+  <div class="section-title"><h2>The feedback loop</h2></div>
+  <div class="card">
+    <ol style="margin:0;padding-left:20px;line-height:1.7">
+      <li><b>Use it for a few days.</b> Add your real goals, tasks, and numbers.</li>
+      <li><b>Do a weekly review</b> (📝 top-right). It captures what's working and what's not.</li>
+      <li><b>Ask Claude to change it.</b> Open this file in a Claude Project or paste it in, then describe the change.</li>
+      <li><b>Claude returns a new <code>dashboard.html</code>.</b> Replace the file — your data stays (it's in your browser).</li>
+      <li>Repeat. The app grows around how <i>you</i> actually work.</li>
+    </ol>
+  </div>
+
+  <div class="section-title"><h2>Copy-paste starter prompt</h2><button class="btn sm" onclick="copyPrompt()">Copy</button></div>
+  <div class="card"><textarea id="claudePrompt" style="min-height:170px" readonly>${esc(starterPrompt())}</textarea></div>
+
+  <div class="section-title"><h2>Ideas to ask for</h2></div>
+  <div class="card">
+    <div class="row"><div class="grow"><div class="title">🍽️ Meal & grocery planner</div><div class="meta">a weekly menu that builds a shopping list</div></div></div>
+    <div class="row"><div class="grow"><div class="title">💵 Budget by category</div><div class="meta">monthly spend targets vs. actual, per category</div></div></div>
+    <div class="row"><div class="grow"><div class="title">🏋️ Workout logger</div><div class="meta">sets, reps, and a weekly training plan</div></div></div>
+    <div class="row"><div class="grow"><div class="title">🏡 Rutledge project board</div><div class="meta">rename the domain, add a kanban of home projects</div></div></div>
+    <div class="row"><div class="grow"><div class="title">🔔 Reminders & recurring tasks</div><div class="meta">tasks that come back every week</div></div></div>
+    <div class="row"><div class="grow"><div class="title">🎨 A different look</div><div class="meta">lighter theme, your colors, a new name & logo</div></div></div>
+  </div>
+
+  <div class="section-title"><h2>Your data</h2><span class="sub">${stats}</span></div>
+  <div class="card">
+    <p class="muted small" style="margin-top:0">Your data lives only in this browser. Export it to keep a backup or move devices — always export before replacing the file.</p>
+    <div class="flex wrap">
+      <button class="btn" onclick="exportData()">⬇️ Export backup (JSON)</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">⬆️ Import backup</button>
+      <input type="file" id="importFile" accept="application/json" class="hidden" onchange="importData(event)">
+      <button class="btn" onclick="copyForClaude()">📋 Copy data for Claude</button>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+  <p class="center muted small">Renaming "Rutledge" or any area? Do it in ⚙️ Settings → Areas.</p>
+  `;
+}
+function starterPrompt(){
+  return `I have a single-file personal dashboard called "Life HQ" (one dashboard.html file — vanilla HTML/CSS/JS, data saved in localStorage). I'm attaching the file.
+
+Please act as my product engineer for it. I'd like you to:
+
+1) Keep it as ONE self-contained dashboard.html file with no external dependencies, so it keeps working offline.
+2) Preserve my existing data model and localStorage key ('lifehq_v1') so my saved data isn't lost.
+3) Make this change: <describe what you want — e.g. "add a meal planner tab" or "rename Rutledge to 'Home' and give it a project board">.
+
+Return the complete updated dashboard.html. Explain what you changed in a couple of sentences.`;
+}
+function copyPrompt(){ navigator.clipboard.writeText(starterPrompt()).then(()=>toast('Prompt copied ✓')); }
+function copyForClaude(){ navigator.clipboard.writeText('Here is my current Life HQ data (JSON). Please use it as context:\n\n'+JSON.stringify(D,null,2)).then(()=>toast('Data copied for Claude ✓')); }
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function quickTask(){ const i=document.getElementById('qtask'); if(!i.value.trim())return;
+  D.tasks.unshift({id:uid(),domain:D.domains[0].id,title:i.value.trim(),when:'today',priority:1,due:todayStr(),done:false}); save(); render(); toast('Added to today'); }
+function addTask(w){ const i=document.getElementById('add_'+w); if(!i.value.trim())return;
+  D.tasks.unshift({id:uid(),domain:(D._taskFilter&&D._taskFilter!=='all')?D._taskFilter:D.domains[0].id,title:i.value.trim(),when:w,priority:1,due:w==='today'?todayStr():'',done:false}); save(); render(); }
+function toggleTask(id){ const t=D.tasks.find(x=>x.id===id); t.done=!t.done; save(); render(); }
+function toggleGoal(id){ const g=D.goals.find(x=>x.id===id); g.done=!g.done; save(); render(); }
+function toggleHabit(id){ const h=D.habits.find(x=>x.id===id); const k=todayStr(); if(h.history[k])delete h.history[k]; else h.history[k]=true; save(); render(); if(h.history[k]&&streak(h)>1)toast('🔥 '+streak(h)+' day streak!'); }
+
+function logGoal(id){ const g=D.goals.find(x=>x.id===id);
+  modal(`<h3>Log progress</h3><p class="muted small">${esc(g.title)} — currently ${fmtNum(g.current)} / ${fmtNum(g.target)} ${esc(g.unit||'')}</p>
+    <label class="fld">Add to current (or set total)</label>
+    <div class="flex"><input id="lg_add" type="number" step="any" placeholder="+ amount"><button class="btn primary" onclick="applyLog('${id}','add')">Add</button></div>
+    <label class="fld">Or set exact total</label>
+    <div class="flex"><input id="lg_set" type="number" step="any" placeholder="set to…"><button class="btn" onclick="applyLog('${id}','set')">Set</button></div>`);
+}
+function applyLog(id,mode){ const g=D.goals.find(x=>x.id===id);
+  if(mode==='add'){ const v=parseFloat(document.getElementById('lg_add').value); if(isNaN(v))return; g.current=(g.current||0)+v; }
+  else { const v=parseFloat(document.getElementById('lg_set').value); if(isNaN(v))return; g.current=v; }
+  if(g.current>=g.target) toast('🎉 Goal reached!'); save(); closeModal(); render(); }
+
+function logMetric(id){ const m=D.metrics.find(x=>x.id===id); const inp=document.getElementById('mv_'+id); const v=parseFloat(inp.value); if(isNaN(v))return;
+  const k=todayStr(); const ex=m.entries.find(e=>e.date===k); if(ex)ex.value=v; else m.entries.push({date:k,value:v}); save(); render(); toast('Logged ✓'); }
+
+/* ---------- Editors (modal forms) ---------- */
+function domainOptions(sel){ return D.domains.map(d=>`<option value="${d.id}" ${d.id===sel?'selected':''}>${d.emoji} ${esc(d.name)}</option>`).join(''); }
+
+function editGoal(id){ const g=id?D.goals.find(x=>x.id===id):{domain:D.domains[0].id,title:'',target:'',current:0,unit:'',due:''};
+  modal(`<h3>${id?'Edit':'New'} goal</h3>
+    <label class="fld">Goal</label><input id="f_title" value="${esc(g.title)}" placeholder="e.g. Run a 5k">
+    <label class="fld">Area</label><select id="f_domain">${domainOptions(g.domain)}</select>
+    <div class="grid g2"><div><label class="fld">Target</label><input id="f_target" type="number" step="any" value="${g.target}"></div>
+      <div><label class="fld">Unit</label><input id="f_unit" value="${esc(g.unit||'')}" placeholder="$ / lbs / reps"></div></div>
+    <label class="fld">Current</label><input id="f_current" type="number" step="any" value="${g.current||0}">
+    <label class="fld">Target date (optional)</label><input id="f_due" type="date" value="${g.due||''}">
+    <div class="flex between" style="margin-top:18px"><div>${id?`<button class="btn danger" onclick="delItem('goals','${id}')">Delete</button>`:''}</div>
+      <button class="btn primary" onclick="saveGoal('${id||''}')">Save goal</button></div>`);
+}
+function saveGoal(id){ const o={domain:val('f_domain'),title:val('f_title').trim(),target:parseFloat(val('f_target'))||0,current:parseFloat(val('f_current'))||0,unit:val('f_unit').trim(),due:val('f_due')};
+  if(!o.title){toast('Add a title');return;} if(id){Object.assign(D.goals.find(x=>x.id===id),o);}else{D.goals.push({id:uid(),done:false,...o});} save(); closeModal(); render(); }
+
+function editTask(id){ const t=id?D.tasks.find(x=>x.id===id):{domain:D.domains[0].id,title:'',when:'today',priority:1,due:''};
+  modal(`<h3>${id?'Edit':'New'} task</h3>
+    <label class="fld">Task</label><input id="f_title" value="${esc(t.title)}">
+    <label class="fld">Area</label><select id="f_domain">${domainOptions(t.domain)}</select>
+    <div class="grid g2"><div><label class="fld">When</label><select id="f_when"><option value="today" ${t.when==='today'?'selected':''}>Today</option><option value="week" ${t.when==='week'?'selected':''}>This week</option><option value="later" ${t.when==='later'?'selected':''}>Later</option></select></div>
+    <div><label class="fld">Priority</label><select id="f_priority"><option value="1" ${t.priority==1?'selected':''}>Normal</option><option value="2" ${t.priority==2?'selected':''}>High !</option><option value="3" ${t.priority==3?'selected':''}>Urgent ‼️</option></select></div></div>
+    <label class="fld">Due date (optional)</label><input id="f_due" type="date" value="${t.due||''}">
+    <div class="flex between" style="margin-top:18px"><div>${id?`<button class="btn danger" onclick="delItem('tasks','${id}')">Delete</button>`:''}</div>
+      <button class="btn primary" onclick="saveTask('${id||''}')">Save task</button></div>`);
+}
+function saveTask(id){ const o={domain:val('f_domain'),title:val('f_title').trim(),when:val('f_when'),priority:parseInt(val('f_priority')),due:val('f_due')};
+  if(!o.title){toast('Add a title');return;} if(id){Object.assign(D.tasks.find(x=>x.id===id),o);}else{D.tasks.unshift({id:uid(),done:false,...o});} save(); closeModal(); render(); }
+
+function editHabit(id){ const h=id?D.habits.find(x=>x.id===id):{domain:D.domains[0].id,name:'',emoji:'⭐'};
+  modal(`<h3>${id?'Edit':'New'} habit</h3>
+    <label class="fld">Habit</label><input id="f_name" value="${esc(h.name)}" placeholder="e.g. Drink water">
+    <div class="grid g2"><div><label class="fld">Emoji</label><input id="f_emoji" value="${esc(h.emoji||'⭐')}" maxlength="2"></div>
+    <div><label class="fld">Area</label><select id="f_domain">${domainOptions(h.domain)}</select></div></div>
+    <div class="flex between" style="margin-top:18px"><div>${id?`<button class="btn danger" onclick="delItem('habits','${id}')">Delete</button>`:''}</div>
+      <button class="btn primary" onclick="saveHabit('${id||''}')">Save habit</button></div>`);
+}
+function saveHabit(id){ const o={domain:val('f_domain'),name:val('f_name').trim(),emoji:val('f_emoji').trim()||'⭐'};
+  if(!o.name){toast('Name it');return;} if(id){Object.assign(D.habits.find(x=>x.id===id),o);}else{D.habits.push({id:uid(),history:{},...o});} save(); closeModal(); render(); }
+
+function editMetric(id){ const m=id?D.metrics.find(x=>x.id===id):{domain:D.domains[0].id,name:'',unit:''};
+  modal(`<h3>${id?'Edit':'New'} tracker</h3>
+    <label class="fld">What are you tracking?</label><input id="f_name" value="${esc(m.name)}" placeholder="e.g. Weight, Steps, Spend">
+    <div class="grid g2"><div><label class="fld">Unit</label><input id="f_unit" value="${esc(m.unit||'')}" placeholder="lb / $ / mi"></div>
+    <div><label class="fld">Area</label><select id="f_domain">${domainOptions(m.domain)}</select></div></div>
+    <div class="flex between" style="margin-top:18px"><div>${id?`<button class="btn danger" onclick="delItem('metrics','${id}')">Delete</button>`:''}</div>
+      <button class="btn primary" onclick="saveMetric('${id||''}')">Save tracker</button></div>`);
+}
+function saveMetric(id){ const o={domain:val('f_domain'),name:val('f_name').trim(),unit:val('f_unit').trim()};
+  if(!o.name){toast('Name it');return;} if(id){Object.assign(D.metrics.find(x=>x.id===id),o);}else{D.metrics.push({id:uid(),entries:[],...o});} save(); closeModal(); render(); }
+
+function delItem(coll,id){ if(!confirm('Delete this?'))return; D[coll]=D[coll].filter(x=>x.id!==id); save(); closeModal(); render(); }
+
+/* ---------- Domain drill-down ---------- */
+function openDomain(id){ const dm=domain(id);
+  const gs=D.goals.filter(g=>g.domain===id), ts=D.tasks.filter(t=>t.domain===id&&!t.done), hs=D.habits.filter(h=>h.domain===id), ms=D.metrics.filter(m=>m.domain===id);
+  modal(`<button class="btn ghost sm close" onclick="closeModal()">✕</button>
+    <h3>${dm.emoji} ${esc(dm.name)}</h3>
+    <div class="grid g3" style="margin:14px 0">
+      <div class="stat"><div class="k">Goals</div><div class="v">${gs.filter(g=>!g.done).length}</div></div>
+      <div class="stat"><div class="k">Open tasks</div><div class="v">${ts.length}</div></div>
+      <div class="stat"><div class="k">Habits</div><div class="v">${hs.length}</div></div>
+    </div>
+    ${gs.length?`<label class="fld">Goals</label><div class="card" style="box-shadow:none">${gs.map(goalRow).join('')}</div>`:''}
+    ${ts.length?`<label class="fld">Open tasks</label><div class="card" style="box-shadow:none">${ts.map(taskRow).join('')}</div>`:''}
+    ${hs.length?`<label class="fld">Habits</label><div class="card" style="box-shadow:none">${hs.map(habitTodayRow).join('')}</div>`:''}
+    ${ms.length?`<label class="fld">Trackers</label><div class="grid g2">${ms.map(metricCard).join('')}</div>`:''}
+    ${(!gs.length&&!ts.length&&!hs.length&&!ms.length)?`<div class="empty">Nothing here yet. Add goals, tasks or habits and tag them ${dm.emoji} ${esc(dm.name)}.</div>`:''}`);
+}
+
+/* ---------- Profile / focus ---------- */
+function editProfile(){
+  modal(`<h3>Personalize</h3>
+    <label class="fld">Your name</label><input id="p_name" value="${esc(D.profile.name)}" placeholder="First name">
+    <label class="fld">This week's focus</label><input id="p_focus" value="${esc(D.profile.focus)}" placeholder="One thing that matters most">
+    <button class="btn primary block" style="margin-top:18px" onclick="saveProfile()">Save</button>`);
+}
+function saveProfile(){ D.profile.name=val('p_name').trim(); D.profile.focus=val('p_focus').trim(); save(); closeModal(); render(); }
+
+/* ============================================================
+   WEEKLY REVIEW — the reflection loop
+   ============================================================ */
+function startReview(){ go('today'); openReview(); }
+function openReview(){
+  const ratings = D.domains.map(dm=>`<div class="flex between" style="margin:8px 0">
+    <span>${dm.emoji} ${esc(dm.name)}</span>
+    <select id="rr_${dm.id}" style="width:auto">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${'⭐'.repeat(n)}</option>`).join('')}</select></div>`).join('');
+  modal(`<button class="btn ghost sm close" onclick="closeModal()">✕</button>
+    <h3>📝 Weekly review</h3><p class="muted small">A 3-minute reflection. This is the feedback loop that makes next week better.</p>
+    <label class="fld">🌟 Wins — what went well?</label><textarea id="rv_wins"></textarea>
+    <label class="fld">🧗 Challenges — what got in the way?</label><textarea id="rv_ch"></textarea>
+    <label class="fld">🎯 Focus for next week</label><textarea id="rv_focus" style="min-height:50px"></textarea>
+    <label class="fld">How did each area feel?</label>${ratings}
+    <button class="btn primary block" style="margin-top:16px" onclick="saveReview()">Save review</button>
+    ${D.reviews.length?`<div class="section-title"><h2 style="font-size:1rem">Past reviews</h2></div>${D.reviews.slice(0,5).map(reviewRow).join('')}`:''}`);
+}
+function reviewRow(r){ return `<div class="row"><div class="grow"><div class="title">${fmtDate(r.date)}</div>
+  <div class="meta">${r.focus?'🎯 '+esc(r.focus):''}</div></div></div>`; }
+function saveReview(){
+  const r={id:uid(),date:todayStr(),wins:val('rv_wins'),challenges:val('rv_ch'),focus:val('rv_focus'),ratings:{}};
+  D.domains.forEach(dm=>r.ratings[dm.id]=parseInt(val('rr_'+dm.id)));
+  D.reviews.unshift(r);
+  if(r.focus) D.profile.focus=r.focus.split('\n')[0].slice(0,80);
+  save(); closeModal(); render(); toast('Review saved — nice reflecting 🌱');
+}
+
+/* ============================================================
+   SETTINGS — areas of life + data
+   ============================================================ */
+function openSettings(){
+  const areas = D.domains.map(dm=>`<div class="row"><div class="grow flex" style="gap:8px">
+    <input value="${esc(dm.emoji)}" maxlength="2" style="width:52px" onchange="renameDomain('${dm.id}','emoji',this.value)">
+    <input value="${esc(dm.name)}" onchange="renameDomain('${dm.id}','name',this.value)"></div>
+    ${D.domains.length>1?`<button class="iconbtn" onclick="removeDomain('${dm.id}')">🗑️</button>`:''}</div>`).join('');
+  modal(`<button class="btn ghost sm close" onclick="closeModal()">✕</button>
+    <h3>⚙️ Settings</h3>
+    <label class="fld">Your name</label><input value="${esc(D.profile.name)}" onchange="D.profile.name=this.value.trim();save()">
+    <div class="section-title"><h2 style="font-size:1rem">Areas of life</h2></div>
+    <p class="muted small" style="margin-top:0">Rename or reshape these to fit her world. "Rutledge" can become Home, Family, a business — anything.</p>
+    <div class="card" style="box-shadow:none">${areas}</div>
+    <div class="add-line"><input id="new_dom_emoji" placeholder="🎨" maxlength="2" style="max-width:60px"><input id="new_dom_name" placeholder="New area name"><button class="btn primary sm" onclick="addDomain()">Add</button></div>
+    <div class="section-title"><h2 style="font-size:1rem">Data & backup</h2></div>
+    <div class="flex wrap">
+      <button class="btn" onclick="exportData()">⬇️ Export</button>
+      <button class="btn" onclick="document.getElementById('importFile2').click()">⬆️ Import</button>
+      <input type="file" id="importFile2" accept="application/json" class="hidden" onchange="importData(event)">
+      <button class="btn danger" onclick="resetAll()">Reset everything</button>
+    </div>
+    <p class="muted small">Data is stored only in this browser (localStorage key <code>lifehq_v1</code>). Export before switching devices or replacing the file.</p>`);
+}
+function renameDomain(id,field,v){ const d=domain(id); d[field]=v.trim()||d[field]; save(); renderNav(); render(); }
+function addDomain(){ const name=val('new_dom_name').trim(); if(!name)return; const emoji=val('new_dom_emoji').trim()||'📌';
+  D.domains.push({id:uid(),name,emoji,color:'other'}); save(); openSettings(); render(); }
+function removeDomain(id){ if(D.domains.length<=1)return; if(!confirm('Remove this area? Items tagged to it will move to the first area.'))return;
+  const fallback=D.domains.find(d=>d.id!==id).id;
+  ['goals','tasks','habits','metrics'].forEach(c=>D[c].forEach(x=>{if(x.domain===id)x.domain=fallback;}));
+  D.domains=D.domains.filter(d=>d.id!==id); save(); openSettings(); render(); }
+
+/* ---------- Data I/O ---------- */
+function exportData(){ const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='life-hq-backup-'+todayStr()+'.json'; a.click(); toast('Backup downloaded ✓'); }
+function importData(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.domains)throw 0; D=d; save(); closeModal(); render(); renderNav(); toast('Data imported ✓'); }catch(_){ toast('Could not read that file'); } }; r.readAsText(f); }
+function resetAll(){ if(!confirm('Erase all data and start fresh? Export a backup first if unsure.'))return; D=seed(); save(); closeModal(); render(); renderNav(); toast('Reset done'); }
+
+/* ============================================================
+   MODAL PLUMBING
+   ============================================================ */
+function modal(html){ document.getElementById('modal').innerHTML=html; document.getElementById('overlay').classList.add('show'); }
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+const val = id => { const el=document.getElementById(id); return el?el.value:''; };
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay')closeModal(); });
+document.getElementById('btnReview').onclick=openReview;
+document.getElementById('btnSettings').onclick=openSettings;
+
+/* ---------- boot ---------- */
+renderNav(); render();
+</script>
+</body>
+</html>
